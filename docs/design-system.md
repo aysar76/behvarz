@@ -42,12 +42,14 @@
 | `Tabs`       | `Tabs`, `TabsList`, `TabsTrigger`, `TabsContent` با نقش‌های ARIA                              |
 | `Toast`      | `ToastProvider` + `useToast`؛ تن‌های info/success/warning/danger؛ خودکار بسته‌شدن             |
 | `EmptyState` | آیکون + عنوان + توضیح + اکشن                                                                  |
+| `Select`     | `<select>` استایل‌شده با placeholder و حالت disabled (فاز ۲)                                  |
+| `ChipSelect` | انتخاب چندتایی به‌صورت چیپ با سقف انتخاب (`max`) (فاز ۲)                                      |
 
 ## App Shell
 
 - `src/components/shell/`:
-  - `app-shell.tsx` — چیدمان کلی (Header + main + ناوبری موبایل)
-  - `app-header.tsx` — هدر چسبان؛ ناوبری دسکتاپ؛ دکمه ورود (غیرفعال تا فاز ۲)
+  - `app-shell.tsx` — چیدمان کلی (Header + main + ناوبری موبایل)؛ فراهم‌کننده `SessionProvider` و `ToastProvider`
+  - `app-header.tsx` — هدر چسبان؛ ناوبری دسکتاپ؛ منوی کاربر (`user-menu`)
   - `mobile-nav.tsx` — نوار پایین موبایل
   - `logo.tsx` — برند
 - مسیرهای آینده در `src/config/site.ts` به‌صورت `disabled` (به‌زودی) تعریف شده‌اند.

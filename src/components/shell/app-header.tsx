@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { mainNav } from "@/config/site";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/shell/logo";
+import { UserMenu } from "@/components/auth/user-menu";
 
 export function AppHeader() {
   const pathname = usePathname();
@@ -51,14 +52,7 @@ export function AppHeader() {
         </nav>
 
         <div className="hidden md:block">
-          <button
-            type="button"
-            disabled
-            className="border-border text-muted-foreground/50 cursor-not-allowed rounded-md border px-4 py-2 text-sm font-medium"
-            title="ورود — از فاز ۲ فعال می‌شود"
-          >
-            ورود به حساب
-          </button>
+          <UserMenu />
         </div>
       </div>
     </header>

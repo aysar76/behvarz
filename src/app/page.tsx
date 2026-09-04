@@ -1,6 +1,8 @@
+import Link from "next/link";
 import { AppShell } from "@/components/shell/app-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { getCurrentUser } from "@/lib/auth/current-user";
 import { siteConfig } from "@/config/site";
 
 const pillars = [
@@ -21,7 +23,19 @@ const pillars = [
   },
 ];
 
-export default function Home() {
+export default async function Home() {
+  const user = await getCurrentUser();
+  const ctaHref = user
+    ? user.onboardingCompleted
+      ? "/me"
+      : "/onboarding"
+    : "/auth";
+  const ctaLabel = user
+    ? user.onboardingCompleted
+      ? "پروفایل من"
+      : "تکمیل پروفایل"
+    : "ثبت‌نام در جامعه";
+
   return (
     <AppShell>
       <section className="flex flex-col items-center gap-6 py-10 text-center md:py-16">
@@ -38,9 +52,9 @@ export default function Home() {
           بدون بار اضافه اداری.
         </p>
         <div className="mt-2 flex flex-col gap-3 sm:flex-row">
-          <Button size="lg" disabled title="از فاز ۲ فعال می‌شود">
-            ثبت‌نام در جامعه
-          </Button>
+          <Link href={ctaHref}>
+            <Button size="lg">{ctaLabel}</Button>
+          </Link>
           <Button
             size="lg"
             variant="outline"

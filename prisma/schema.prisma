@@ -7,12 +7,137 @@ datasource db {
   provider = "sqlite"
 }
 
-// NOTE (فاز ۱): این اسکیما «پیش‌نویس پایه» است و در فاز ۲ (هویت و پروفایل)
-// به‌صورت کامل بازبینی و گسترش می‌یابد. هیچ داده بیمار در مدل داده وجود ندارد.
+// NOTE (فاز ۲): هویت، احراز هویت و پروفایل حرفه‌ای.
+// هیچ داده بیمار در مدل داده وجود ندارد (رجوع به docs/data-privacy-rules.md).
+
+enum Role {
+  guest
+  member
+  verified_member
+  mentor
+  circle_facilitator
+  content_moderator
+  admin
+  super_admin
+}
+
+enum MembershipStatus {
+  none
+  pending
+  verified
+  rejected
+}
+
+enum Visibility {
+  public
+  members
+  private
+}
+
 model User {
-  id           String    @id @default(cuid())
-  phone        String    @unique
-  displayName  String?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id                  String            @id @default(cuid())
+  phone               String            @unique
+  role                Role              @default(member)
+  membershipStatus    MembershipStatus  @default(none)
+  displayName         String?
+  province            String?
+  city                String?
+  workYears           String?
+  bio                 String?
+  visibility          Visibility        @default(members)
+  onboardingCompleted Boolean           @default(false)
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+
+  skills             UserSkill[]
+  interests          UserInterest[]
+  sessions           Session[]
+  membershipRequests MembershipRequest[]
+  auditLogs          AuditLog[]
+}
+
+model OtpCode {
+  id          String    @id @default(cuid())
+  phone       String
+  codeHash    String
+  purpose     String    @default("login")
+  attempts    Int       @default(0)
+  maxAttempts Int       @default(5)
+  expiresAt   DateTime
+  consumedAt  DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([phone, purpose])
+}
+
+model Session {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  ip        String?
+  userAgent String?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}
+
+model MembershipRequest {
+  id         String           @id @default(cuid())
+  userId     String
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status     MembershipStatus @default(pending)
+  note       String?
+  reviewedBy String?
+  reviewedAt DateTime?
+  createdAt  DateTime         @default(now())
+
+  @@index([status])
+}
+
+model Skill {
+  id    String       @id @default(cuid())
+  name  String       @unique
+  users UserSkill[]
+}
+
+model UserSkill {
+  userId  String
+  skillId String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skill   Skill  @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@id([userId, skillId])
+}
+
+model Interest {
+  id    String          @id @default(cuid())
+  name  String          @unique
+  users UserInterest[]
+}
+
+model UserInterest {
+  userId     String
+  interestId String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  interest   Interest @relation(fields: [interestId], references: [id], onDelete: Cascade)
+
+  @@id([userId, interestId])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  actor      User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  action     String
+  entityType String
+  entityId   String?
+  details    String?
+  ip         String?
+  createdAt  DateTime @default(now())
+
+  @@index([actorId])
+  @@index([action])
 }
