@@ -15,6 +15,7 @@ import {
   EXPERIENCE_LIST_INCLUDE,
 } from "@/lib/experiences";
 import { generateExperienceSlug } from "@/lib/slug";
+import { getInteractionState } from "@/lib/interactions";
 import {
   serializeExperience,
   type ExperienceRow,
@@ -97,9 +98,28 @@ export async function GET(request: Request) {
       prisma.experience.count({ where }),
     ]);
 
+    const state = await getInteractionState(user.id);
+    const thanked = await prisma.professionalThanks.findMany({
+      where: {
+        userId: user.id,
+        targetType: "experience",
+        targetId: { in: rows.map((row) => row.id) },
+      },
+      select: { targetId: true },
+    });
+    const thankedIds = new Set(thanked.map((item) => item.targetId));
+
     const experiences: SerializedExperience[] = (
       rows as unknown as ExperienceRow[]
-    ).map((row) => serializeExperience(row));
+    ).map((row) =>
+      serializeExperience(row, {
+        currentUserId: user.id,
+        savedSet: state.savedSet,
+        followedSet: state.followedExperiences,
+        followedTags: state.followedTags,
+        thankedIds,
+      }),
+    );
 
     return jsonOk({
       experiences,

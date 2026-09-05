@@ -4,6 +4,7 @@ import { AppShell } from "@/components/shell/app-shell";
 import { ExperienceDetail } from "@/components/experiences/experience-detail";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { canUser } from "@/lib/auth/authorization";
+import { getInteractionState } from "@/lib/interactions";
 import {
   serializeExperience,
   type ExperienceRow,
@@ -56,6 +57,10 @@ export default async function ExperiencePage({
         orderBy: { createdAt: "desc" },
         take: 20,
       },
+      thanks: {
+        where: { userId: user.id },
+        select: { targetId: true },
+      },
       _count: { select: { references: true, reuses: true } },
     },
   });
@@ -66,6 +71,8 @@ export default async function ExperiencePage({
   if (experience.isDraft && experience.authorId !== user.id) notFound();
 
   const tagNames = experience.tags.map((item) => item.tag.name);
+  const state = await getInteractionState(user.id);
+
   let related: SerializedExperience[] = [];
   if (tagNames.length > 0) {
     const relatedRows = await prisma.experience.findMany({
@@ -86,7 +93,12 @@ export default async function ExperiencePage({
       take: 5,
     });
     related = (relatedRows as unknown as ExperienceRow[]).map((row) =>
-      serializeExperience(row),
+      serializeExperience(row, {
+        currentUserId: user.id,
+        savedSet: state.savedSet,
+        followedSet: state.followedExperiences,
+        followedTags: state.followedTags,
+      }),
     );
   }
 
@@ -97,6 +109,10 @@ export default async function ExperiencePage({
           experience as unknown as ExperienceRow,
           {
             currentUserId: user.id,
+            savedSet: state.savedSet,
+            followedSet: state.followedExperiences,
+            followedTags: state.followedTags,
+            thankedIds: new Set(experience.thanks.map((item) => item.targetId)),
           },
         )}
         related={related}

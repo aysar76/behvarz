@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
@@ -12,6 +13,8 @@ import { ProblemForm } from "@/components/problems/problem-form";
 import { AnswerItem } from "@/components/problems/answer-item";
 import { AnswerForm } from "@/components/problems/answer-form";
 import { ReportDialog } from "@/components/problems/report-dialog";
+import { FollowButton } from "@/components/interactions/follow-button";
+import { SaveButton } from "@/components/interactions/save-button";
 import { formatRelativeTime } from "@/lib/dates";
 import {
   PROBLEM_BARRIER_LABELS,
@@ -96,6 +99,22 @@ export function ProblemDetail({
     } finally {
       setProcessingAnswerId(null);
     }
+  }
+
+  function toggleThanks(
+    answerId: string,
+    thanksCount: number,
+    isThankedByMe: boolean,
+  ) {
+    updateAnswer(answerId, { thanksCount, isThankedByMe });
+  }
+
+  function toggleFollow(following: boolean) {
+    setProblem((current) => ({ ...current, isFollowedByMe: following }));
+  }
+
+  function toggleSaved(saved: boolean) {
+    setProblem((current) => ({ ...current, isSavedByMe: saved }));
   }
 
   async function submitSolution() {
@@ -278,9 +297,27 @@ export function ProblemDetail({
             {problem.isAnonymous && <Badge tone="info">ناشناس</Badge>}
           </div>
 
-          {canModerate && problem.moderation !== "visible" && (
-            <Badge tone="danger">غیرقابل‌نمایش (نظارت)</Badge>
-          )}
+          <div className="flex flex-wrap items-center gap-2">
+            {!problem.isDraft && (
+              <>
+                <FollowButton
+                  targetType="problem"
+                  targetId={problem.id}
+                  following={problem.isFollowedByMe}
+                  onToggle={toggleFollow}
+                />
+                <SaveButton
+                  targetType="problem"
+                  targetId={problem.id}
+                  saved={problem.isSavedByMe}
+                  onToggle={toggleSaved}
+                />
+              </>
+            )}
+            {canModerate && problem.moderation !== "visible" && (
+              <Badge tone="danger">غیرقابل‌نمایش (نظارت)</Badge>
+            )}
+          </div>
         </div>
 
         <h1 className="text-foreground mt-3 text-2xl leading-relaxed font-extrabold">
@@ -289,9 +326,18 @@ export function ProblemDetail({
 
         <div className="text-muted-foreground mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
           <span className="text-foreground text-sm font-semibold">
-            {problem.isAnonymous
-              ? "ناشناس"
-              : (problem.author?.displayName ?? "بی‌نام")}
+            {problem.isAnonymous ? (
+              "ناشناس"
+            ) : problem.author ? (
+              <Link
+                href={`/users/${problem.author.id}`}
+                className="hover:text-brand-700"
+              >
+                {problem.author.displayName ?? "بی‌نام"}
+              </Link>
+            ) : (
+              "بی‌نام"
+            )}
           </span>
           {!problem.isAnonymous && problem.author?.province && (
             <>
@@ -479,6 +525,7 @@ export function ProblemDetail({
                 isAuthor={isAuthor}
                 busy={processingAnswerId === answer.id}
                 onHelpfulToggle={(answerId) => void toggleHelpful(answerId)}
+                onThanksToggle={toggleThanks}
                 onSelectSolution={(answerId) => setSolutionAnswerId(answerId)}
                 onReport={(answerId) =>
                   setReportTarget({ type: "answer", id: answerId })

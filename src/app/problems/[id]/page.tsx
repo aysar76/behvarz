@@ -4,6 +4,7 @@ import { AppShell } from "@/components/shell/app-shell";
 import { ProblemDetail } from "@/components/problems/problem-detail";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { canUser } from "@/lib/auth/authorization";
+import { getInteractionState } from "@/lib/interactions";
 import { ANSWER_DETAIL_INCLUDE } from "@/lib/problems";
 import {
   serializeProblem,
@@ -52,6 +53,8 @@ export default async function ProblemPage({
   if (problem.moderation !== "visible" && !canModerate) notFound();
 
   const tagNames = problem.tags.map((item) => item.tag.name);
+  const state = await getInteractionState(user.id);
+
   let related: SerializedProblem[] = [];
   if (tagNames.length > 0) {
     const relatedRows = await prisma.problem.findMany({
@@ -71,7 +74,12 @@ export default async function ProblemPage({
       take: 5,
     });
     related = (relatedRows as unknown as ProblemRow[]).map((row) =>
-      serializeProblem(row),
+      serializeProblem(row, {
+        currentUserId: user.id,
+        savedSet: state.savedSet,
+        followedSet: state.followedProblems,
+        followedTags: state.followedTags,
+      }),
     );
   }
 
@@ -81,6 +89,9 @@ export default async function ProblemPage({
         initialProblem={serializeProblem(problem as unknown as ProblemRow, {
           currentUserId: user.id,
           revealAuthor: canModerate,
+          savedSet: state.savedSet,
+          followedSet: state.followedProblems,
+          followedTags: state.followedTags,
         })}
         related={related}
         isAuthor={problem.authorId === user.id}

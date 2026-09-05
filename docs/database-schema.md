@@ -1,4 +1,4 @@
-# اسکیمای دیتابیس (Database Schema) — فاز ۴
+# اسکیمای دیتابیس (Database Schema) — فاز ۵
 
 **وضعیت:** به‌روزرسانی با وضعیت واقعی کد — تاریخ: مهر ۱۴۰۵
 
@@ -25,6 +25,9 @@
 | ReportStatus         | pending، reviewing، resolved، rejected                                                            |
 | ExperienceStatus     | user_generated، under_review، reviewed، featured، archived                                        |
 | ExperienceReuseOutcome | successful، partial، unsuccessful                                                               |
+| FollowTargetType     | tag، problem، experience، user                                                                  |
+| SavedTargetType      | problem، experience                                                                             |
+| ThanksTargetType     | answer، experience                                                                              |
 
 ## مدل‌ها
 
@@ -153,6 +156,7 @@
 | moderationNote         | String?         | یادداشت ناظر               |
 | needsReview            | Boolean         | در صف بررسی محتوای حساس    |
 | helpfulCount           | Int             | شمارش «مفید بود»           |
+| thanksCount            | Int             | شمارش تشکر حرفه‌ای (فاز ۵) |
 | createdAt/updatedAt    | DateTime        | زمان ثبت/به‌روزرسانی       |
 
 > Index: `[problemId]`
@@ -201,6 +205,7 @@
 | needsReview       | Boolean               | در صف بررسی محتوای حساس                                        |
 | moderation        | ModerationState       | visible/hidden/removed                                         |
 | moderationNote    | String?               | یادداشت ناظر                                                   |
+| thanksCount       | Int                   | شمارش تشکر حرفه‌ای (فاز ۵)                                     |
 | sourceProblemId   | FK → Problem?         | مسئله مبدا (تبدیل راهکار به تجربه)                             |
 | publishedAt       | DateTime?             | زمان انتشار                                                    |
 | reviewedAt        | DateTime?             | زمان تأیید/برگزیده‌کردن توسط ناظر                              |
@@ -261,6 +266,51 @@
 | createdAt     | DateTime            | زمان                                |
 
 > Indexها: `[status]`، `[problemId]`، `[answerId]`
+
+### Follow (فاز ۵)
+
+دنبال‌کردن موضوع/مسئله/تجربه/عضو (پلی‌مورفیک):
+
+| فیلد       | نوع                | توضیح                                            |
+| ---------- | ------------------ | ------------------------------------------------ |
+| id         | String PK          | شناسه                                            |
+| userId     | FK → User          | دنبال‌کننده                                      |
+| targetType | FollowTargetType   | tag/problem/experience/user                      |
+| targetId   | String             | شناسه هدف (نام برچسب یا id هدف)                 |
+| createdAt  | DateTime           | زمان                                            |
+
+> کلید ترکیبی یکتا `[userId, targetType, targetId]` + Index روی `[targetType, targetId]`. دنبال‌کردن عضو فقط با رعایت `visibility` (خصوصی = ممنوع).
+
+### SavedItem (فاز ۵)
+
+ذخیره محتوا برای مطالعه بعدی:
+
+| فیلد       | نوع              | توضیح                        |
+| ---------- | ---------------- | ---------------------------- |
+| id         | String PK        | شناسه                        |
+| userId     | FK → User        | کاربر                        |
+| targetType | SavedTargetType  | problem/experience           |
+| targetId   | String           | شناسه هدف                    |
+| createdAt  | DateTime         | زمان                         |
+
+> کلید ترکیبی یکتا `[userId, targetType, targetId]` + Index روی `[targetType, targetId]`.
+
+### ProfessionalThanks (فاز ۵)
+
+«تشکر حرفه‌ای» به‌جای لایک عمومی:
+
+| فیلد        | نوع              | توضیح                                    |
+| ----------- | ---------------- | ---------------------------------------- |
+| id          | String PK        | شناسه                                    |
+| userId      | FK → User        | تشکرکننده                                |
+| targetType  | ThanksTargetType | answer/experience                        |
+| targetId    | String           | شناسه هدف                                |
+| answerId    | FK → ProblemAnswer? | پاسخ (برای targetType=answer)          |
+| experienceId| FK → Experience? | تجربه (برای targetType=experience)      |
+| receivedById| FK → User        | گیرنده تشکر (نویسنده پاسخ/تجربه)        |
+| createdAt   | DateTime         | زمان                                     |
+
+> کلید ترکیبی یکتا `[userId, targetType, targetId]` + Index روی `[targetType, targetId]`. شمارنده `thanksCount` روی `ProblemAnswer` و `Experience` نگه‌داری می‌شود. تشکر به محتوای خود کاربر ممنوع است.
 
 ## قواعد
 

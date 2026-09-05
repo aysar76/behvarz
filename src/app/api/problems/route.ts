@@ -10,6 +10,7 @@ import { auditLog } from "@/lib/audit";
 import { scanSensitiveContent } from "@/lib/content-safety";
 import { problemCreateSchema } from "@/lib/validations/problem";
 import { syncProblemTags, PROBLEM_LIST_INCLUDE } from "@/lib/problems";
+import { getInteractionState } from "@/lib/interactions";
 import {
   serializeProblem,
   type ProblemRow,
@@ -87,8 +88,16 @@ export async function GET(request: Request) {
       prisma.problem.count({ where }),
     ]);
 
+    const state = await getInteractionState(user.id);
+
     const problems: SerializedProblem[] = (rows as unknown as ProblemRow[]).map(
-      (row) => serializeProblem(row),
+      (row) =>
+        serializeProblem(row, {
+          currentUserId: user.id,
+          savedSet: state.savedSet,
+          followedSet: state.followedProblems,
+          followedTags: state.followedTags,
+        }),
     );
 
     return jsonOk({

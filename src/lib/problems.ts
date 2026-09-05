@@ -24,6 +24,7 @@ export const PROBLEM_LIST_INCLUDE = {
 export const ANSWER_DETAIL_INCLUDE = {
   author: { select: AUTHOR_SELECT },
   helpfulMarks: { select: { userId: true } },
+  thanks: { select: { userId: true, targetId: true } },
   references: {
     include: {
       experience: {

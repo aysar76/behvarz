@@ -2,6 +2,7 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ThanksButton } from "@/components/interactions/thanks-button";
 import { formatRelativeTime } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 import type {
@@ -14,6 +15,11 @@ export interface AnswerItemProps {
   problem: SerializedProblem;
   isAuthor: boolean;
   onHelpfulToggle: (answerId: string) => void;
+  onThanksToggle: (
+    answerId: string,
+    thanksCount: number,
+    isThankedByMe: boolean,
+  ) => void;
   onSelectSolution: (answerId: string) => void;
   onReport: (answerId: string) => void;
   busy?: boolean;
@@ -24,6 +30,7 @@ export function AnswerItem({
   problem,
   isAuthor,
   onHelpfulToggle,
+  onThanksToggle,
   onSelectSolution,
   onReport,
   busy,
@@ -93,6 +100,17 @@ export function AnswerItem({
             ? `مفید بود (${answer.helpfulCount})`
             : "مفید بود"}
         </Button>
+
+        <ThanksButton
+          targetType="answer"
+          targetId={answer.id}
+          thanked={answer.isThankedByMe}
+          thanksCount={answer.thanksCount}
+          disabled={busy}
+          onToggle={(thanksCount, thanked) =>
+            onThanksToggle(answer.id, thanksCount, thanked)
+          }
+        />
 
         {canChoose && (
           <Button

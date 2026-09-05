@@ -1,6 +1,6 @@
 # معماری فعلی (Current Architecture)
 
-**وضعیت:** به‌روزرسانی برای فاز ۴ — تاریخ: مهر ۱۴۰۵
+**وضعیت:** به‌روزرسانی برای فاز ۵ — تاریخ: مهر ۱۴۰۵
 
 ## وضعیت واقعی مخزن
 
@@ -48,6 +48,18 @@
 - **امنیت محتوا و نظارت:** الگوی محتوای حساس یکسان با فاز ۳؛ گزارش تجربه + `POST /api/moderation/experiences/[id]` + بخش تجربه‌ها در `GET /api/admin/moderation`.
 - **دیده‌شدن نویسنده:** برخلاف مسئله (که `isAnonymous` دارد)، نام نویسنده تجربه در خروجی عمومی نمایش داده می‌شود (تجربه = اعتبار و دیده‌شدن)؛ محتوای تجربه ناشناس‌سازی‌شده از مشخصات بیمار است.
 - **RBAC:** مجوزهای جدید `experiences:create/update:own/reuse/archive/report` برای اعضا و `experiences:review` برای ناظر/مدیر.
+
+## معماری تعاملات حرفه‌ای و سرمایه روایت (فاز ۵)
+
+- **مدل داده:** `Follow` (پلی‌مورفیک: برچسب/مسئله/تجربه/عضو)، `SavedItem` (خواندنی‌های من)، `ProfessionalThanks` (تشکر حرفه‌ای) + فیلد `thanksCount` روی `ProblemAnswer` و `Experience`.
+- **دنبال‌کردن:** یک کلید ترکیبی یکتا `[userId, targetType, targetId]`؛ هدف (برچسب/مسئله/تجربه/عضو) سمت سرور پیش از ذخیره اعتبارسنجی می‌شود (`resolveTarget`). دنبال‌کردن عضو با `visibility=private` ممنوع و دنبال‌کردن خود ممنوع است.
+- **ذخیره محتوا:** فقط مسائل/تجربه‌های منتشرشده و قابل‌نمایش؛ از طریق `POST/DELETE /api/saves` و فهرست در `GET /api/saved`.
+- **تشکر حرفه‌ای به‌جای لایک:** یک‌بار به‌ازای هر هدف؛ تشکر به محتوای خود کاربر ممنوع؛ `receivedById` برای محاسبه سرمایه روایت ذخیره می‌شود؛ شمارنده به‌صورت تراکنشی به‌روزرسانی می‌شود.
+- **پروفایل سرمایه حرفه‌ای (`/users/[id]`):** تجربه‌های منتشرشده، مسائل حل‌شده، ارجاع‌های معتبر، اجرای موفق توسط دیگران، تشکر دریافتی + نشان‌های مبتنی بر شواهد (`serializers/capital.ts`) — بدون لایک/لیدربورد. حریم خصوصی: پروفایل `private` فقط برای صاحبش.
+- **خوراک حرفه‌ای (`/feed`):** بر اساس موضوع‌ها/اعضای دنبال‌شده، نه محبوبیت؛ الگوریتم ساده و قابل توضیح (`GET /api/feed`).
+- **حالت تعامل در Serializerها:** `serializeProblem`/`serializeExperience` گزینه‌های `savedSet`/`followedSet`/`followedTags`/`thankedIds` می‌گیرند؛ API ها و صفحه‌های سرور از `getInteractionState(userId)` استفاده می‌کنند.
+- **RBAC:** مجوزهای جدید `interactions:follow`، `interactions:save`، `interactions:thanks`، `profile:read:other` برای اعضا.
+- **Audit Log:** `interaction.follow/unfollow`، `interaction.save/unsave`، `interaction.thanks/unthanks`.
 
 ## محدودیت‌ها و مفروضات
 

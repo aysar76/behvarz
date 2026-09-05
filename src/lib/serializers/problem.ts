@@ -28,10 +28,12 @@ export interface AnswerRow {
   moderation: ModerationState;
   moderationNote: string | null;
   helpfulCount: number;
+  thanksCount: number;
   createdAt: Date;
   updatedAt: Date;
   author: ProblemAuthorRow;
   helpfulMarks?: { userId: string }[];
+  thanks?: { userId: string; targetId: string }[];
   references?: ExperienceReferenceRow[];
 }
 
@@ -100,6 +102,8 @@ export interface SerializedAnswer {
   isSelectedSolution: boolean;
   helpfulCount: number;
   isHelpfulByMe: boolean;
+  thanksCount: number;
+  isThankedByMe: boolean;
   createdAt: string;
   author: SerializedProblemAuthor;
   references: SerializedExperienceRef[];
@@ -148,6 +152,8 @@ export interface SerializedProblem {
   answerCount: number;
   answers: SerializedAnswer[];
   statusHistory: SerializedStatusChange[];
+  isSavedByMe: boolean;
+  isFollowedByMe: boolean;
 }
 
 function serializeAuthor(
@@ -166,11 +172,15 @@ function serializeAuthor(
 export interface SerializeProblemOptions {
   revealAuthor?: boolean;
   currentUserId?: string;
+  savedSet?: Set<string>;
+  followedSet?: Set<string>;
+  followedTags?: Set<string>;
 }
 
 export function serializeAnswer(
   answer: AnswerRow,
   currentUserId?: string,
+  thankedIds?: Set<string>,
 ): SerializedAnswer {
   return {
     id: answer.id,
@@ -182,6 +192,9 @@ export function serializeAnswer(
       (answer.helpfulMarks?.some((mark) => mark.userId === currentUserId) ??
         false) &&
       currentUserId !== undefined,
+    thanksCount: answer.thanksCount,
+    isThankedByMe:
+      (thankedIds?.has(answer.id) ?? false) && currentUserId !== undefined,
     createdAt: answer.createdAt.toISOString(),
     author: serializeAuthor(answer.author) ?? {
       id: "",
@@ -208,6 +221,12 @@ export function serializeProblem(
 ): SerializedProblem {
   const revealAuthor =
     options.revealAuthor === true || problem.isAnonymous === false;
+
+  const answeredThankedIds = new Set(
+    (problem.answers ?? [])
+      .flatMap((answer) => answer.thanks ?? [])
+      .map((mark) => mark.targetId),
+  );
 
   return {
     id: problem.id,
@@ -238,7 +257,9 @@ export function serializeProblem(
     answers:
       problem.answers
         ?.filter((answer) => answer.moderation === "visible")
-        .map((answer) => serializeAnswer(answer, options.currentUserId)) ?? [],
+        .map((answer) =>
+          serializeAnswer(answer, options.currentUserId, answeredThankedIds),
+        ) ?? [],
     statusHistory:
       problem.statusHistory?.map((change) => ({
         id: change.id,
@@ -247,6 +268,12 @@ export function serializeProblem(
         note: change.note,
         createdAt: change.createdAt.toISOString(),
       })) ?? [],
+    isSavedByMe:
+      (options.savedSet?.has(problem.id) ?? false) &&
+      options.currentUserId !== undefined,
+    isFollowedByMe:
+      (options.followedSet?.has(problem.id) ?? false) &&
+      options.currentUserId !== undefined,
   };
 }
 

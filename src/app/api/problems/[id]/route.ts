@@ -13,6 +13,7 @@ import {
   syncProblemTags,
   ANSWER_DETAIL_INCLUDE,
 } from "@/lib/problems";
+import { getInteractionState } from "@/lib/interactions";
 import {
   serializeProblem,
   type ProblemRow,
@@ -22,16 +23,55 @@ import type { z } from "zod";
 
 type UpdateProblemInput = z.infer<typeof problemUpdateSchema>;
 
-export async function GET(
-  _request: Request,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  try {
-    const user = await requireUser();
-    const { id } = await params;
+async function serializeWithState(
+  id: string,
+  currentUserId: string,
+): Promise<{ problem: SerializedProblem; related: SerializedProblem[] }> {
+  const problem = await prisma.problem.findUnique({
+    where: { id },
+    include: {
+      author: {
+        select: {
+          id: true,
+          displayName: true,
+          province: true,
+          city: true,
+          membershipStatus: true,
+          role: true,
+        },
+      },
+      tags: { include: { tag: { select: { id: true, name: true } } } },
+      answers: {
+        include: ANSWER_DETAIL_INCLUDE,
+        orderBy: { createdAt: "asc" },
+      },
+      statusHistory: { orderBy: { createdAt: "asc" } },
+      _count: { select: { answers: true } },
+    },
+  });
 
-    const problem = await prisma.problem.findUnique({
-      where: { id },
+  if (!problem) {
+    throw new AppError("NOT_FOUND", "مسئله یافت نشد");
+  }
+
+  const isModerator = await canModerate(currentUserId);
+  if (problem.moderation !== "visible" && !isModerator) {
+    throw new AppError("NOT_FOUND", "مسئله یافت نشد");
+  }
+
+  const state = await getInteractionState(currentUserId);
+
+  let related: SerializedProblem[] = [];
+  const tagNames = problem.tags.map((item) => item.tag.name);
+  if (tagNames.length > 0) {
+    const relatedRows = await prisma.problem.findMany({
+      where: {
+        id: { not: problem.id },
+        isDraft: false,
+        publishedAt: { not: null },
+        moderation: "visible",
+        tags: { some: { tag: { name: { in: tagNames } } } },
+      },
       include: {
         author: {
           select: {
@@ -44,64 +84,42 @@ export async function GET(
           },
         },
         tags: { include: { tag: { select: { id: true, name: true } } } },
-        answers: {
-          include: ANSWER_DETAIL_INCLUDE,
-          orderBy: { createdAt: "asc" },
-        },
-        statusHistory: { orderBy: { createdAt: "asc" } },
         _count: { select: { answers: true } },
       },
+      orderBy: { createdAt: "desc" },
+      take: 5,
     });
-
-    if (!problem) {
-      throw new AppError("NOT_FOUND", "مسئله یافت نشد");
-    }
-
-    const isModerator = await canModerate(user.id);
-    if (problem.moderation !== "visible" && !isModerator) {
-      throw new AppError("NOT_FOUND", "مسئله یافت نشد");
-    }
-
-    let related: SerializedProblem[] = [];
-    const tagNames = problem.tags.map((item) => item.tag.name);
-    if (tagNames.length > 0) {
-      const relatedRows = await prisma.problem.findMany({
-        where: {
-          id: { not: problem.id },
-          isDraft: false,
-          publishedAt: { not: null },
-          moderation: "visible",
-          tags: { some: { tag: { name: { in: tagNames } } } },
-        },
-        include: {
-          author: {
-            select: {
-              id: true,
-              displayName: true,
-              province: true,
-              city: true,
-              membershipStatus: true,
-              role: true,
-            },
-          },
-          tags: { include: { tag: { select: { id: true, name: true } } } },
-          _count: { select: { answers: true } },
-        },
-        orderBy: { createdAt: "desc" },
-        take: 5,
-      });
-      related = (relatedRows as unknown as ProblemRow[]).map((row) =>
-        serializeProblem(row),
-      );
-    }
-
-    return jsonOk({
-      problem: serializeProblem(problem as unknown as ProblemRow, {
-        currentUserId: user.id,
-        revealAuthor: isModerator,
+    related = (relatedRows as unknown as ProblemRow[]).map((row) =>
+      serializeProblem(row, {
+        currentUserId,
+        savedSet: state.savedSet,
+        followedSet: state.followedProblems,
+        followedTags: state.followedTags,
       }),
-      related,
-    });
+    );
+  }
+
+  const problemData = serializeProblem(problem as unknown as ProblemRow, {
+    currentUserId,
+    revealAuthor: isModerator,
+    savedSet: state.savedSet,
+    followedSet: state.followedProblems,
+    followedTags: state.followedTags,
+  });
+
+  return { problem: problemData, related };
+}
+
+export async function GET(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  try {
+    const user = await requireUser();
+    const { id } = await params;
+
+    const { problem, related } = await serializeWithState(id, user.id);
+    return jsonOk({ problem, related });
   } catch (error) {
     return jsonError(error);
   }
@@ -117,23 +135,23 @@ export async function PATCH(
     assertPermission(user, "problems:update:own");
     const { id } = await params;
 
-    const problem = await getProblemRow(id);
-    if (!problem) {
+    const current = await getProblemRow(id);
+    if (!current) {
       throw new AppError("NOT_FOUND", "مسئله یافت نشد");
     }
-    if (problem.authorId !== user.id) {
+    if (current.authorId !== user.id) {
       throw new AppError(
         "FORBIDDEN",
         "فقط نویسنده می‌تواند مسئله را ویرایش کند",
       );
     }
-    if (problem.moderation === "removed") {
+    if (current.moderation === "removed") {
       throw new AppError(
         "CONFLICT",
         "این مسئله حذف شده است و قابل ویرایش نیست",
       );
     }
-    if (problem.status === "archived") {
+    if (current.status === "archived") {
       throw new AppError("CONFLICT", "مسئله بایگانی‌شده قابل ویرایش نیست");
     }
 
@@ -154,15 +172,15 @@ export async function PATCH(
     }
     const sensitive = scanSensitiveContent(...sensitiveFields);
 
-    if (input.isDraft === true && problem.isDraft === false) {
+    if (input.isDraft === true && current.isDraft === false) {
       throw new AppError(
         "CONFLICT",
         "مسئله منتشرشده را نمی‌توان به پیش‌نویس برگرداند",
       );
     }
 
-    const publishing = input.isDraft === false && problem.isDraft === true;
-    let needsReview = problem.needsReview;
+    const publishing = input.isDraft === false && current.isDraft === true;
+    let needsReview = current.needsReview;
     if (sensitive.length > 0) {
       if (input.sensitiveAcknowledged !== true) {
         throw new AppError(
@@ -187,7 +205,7 @@ export async function PATCH(
     if (input.isAnonymous !== undefined) data.isAnonymous = input.isAnonymous;
     if (input.isDraft !== undefined) data.isDraft = input.isDraft;
     if (publishing) {
-      data.publishedAt = problem.publishedAt ?? new Date();
+      data.publishedAt = current.publishedAt ?? new Date();
       data.needsReview = needsReview;
     }
 
@@ -209,34 +227,8 @@ export async function PATCH(
       ip,
     });
 
-    const updated = await prisma.problem.findUnique({
-      where: { id },
-      include: {
-        author: {
-          select: {
-            id: true,
-            displayName: true,
-            province: true,
-            city: true,
-            membershipStatus: true,
-            role: true,
-          },
-        },
-        tags: { include: { tag: { select: { id: true, name: true } } } },
-        answers: {
-          include: ANSWER_DETAIL_INCLUDE,
-          orderBy: { createdAt: "asc" },
-        },
-        statusHistory: { orderBy: { createdAt: "asc" } },
-        _count: { select: { answers: true } },
-      },
-    });
-
-    return jsonOk({
-      problem: serializeProblem(updated as unknown as ProblemRow, {
-        currentUserId: user.id,
-      }),
-    });
+    const { problem } = await serializeWithState(id, user.id);
+    return jsonOk({ problem });
   } catch (error) {
     return jsonError(error);
   }

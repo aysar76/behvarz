@@ -9,6 +9,9 @@ import { useToast } from "@/components/ui/toast";
 import { ExperienceForm } from "@/components/experiences/experience-form";
 import { ReuseForm } from "@/components/experiences/reuse-form";
 import { ReportDialog } from "@/components/problems/report-dialog";
+import { FollowButton } from "@/components/interactions/follow-button";
+import { SaveButton } from "@/components/interactions/save-button";
+import { ThanksButton } from "@/components/interactions/thanks-button";
 import { experienceStatusTone } from "@/components/experiences/experience-card";
 import { formatRelativeTime } from "@/lib/dates";
 import {
@@ -111,6 +114,18 @@ export function ExperienceDetail({
     router.refresh();
   }
 
+  function toggleFollow(following: boolean) {
+    setExperience((current) => ({ ...current, isFollowedByMe: following }));
+  }
+
+  function toggleSaved(saved: boolean) {
+    setExperience((current) => ({ ...current, isSavedByMe: saved }));
+  }
+
+  function toggleThanks(thanksCount: number, isThankedByMe: boolean) {
+    setExperience((current) => ({ ...current, thanksCount, isThankedByMe }));
+  }
+
   const fields: { label: string; value?: string | null }[] = [
     { label: "شرایط و زمینه", value: experience.conditions },
     { label: "منابع و ابزارها", value: experience.resources },
@@ -134,9 +149,27 @@ export function ExperienceDetail({
             {experience.isDraft && <Badge tone="warning">پیش‌نویس</Badge>}
           </div>
 
-          {canModerate && experience.moderation !== "visible" && (
-            <Badge tone="danger">غیرقابل‌نمایش (نظارت)</Badge>
-          )}
+          <div className="flex flex-wrap items-center gap-2">
+            {!experience.isDraft && (
+              <>
+                <FollowButton
+                  targetType="experience"
+                  targetId={experience.id}
+                  following={experience.isFollowedByMe}
+                  onToggle={toggleFollow}
+                />
+                <SaveButton
+                  targetType="experience"
+                  targetId={experience.id}
+                  saved={experience.isSavedByMe}
+                  onToggle={toggleSaved}
+                />
+              </>
+            )}
+            {canModerate && experience.moderation !== "visible" && (
+              <Badge tone="danger">غیرقابل‌نمایش (نظارت)</Badge>
+            )}
+          </div>
         </div>
 
         <h1 className="text-foreground mt-3 text-2xl leading-relaxed font-extrabold">
@@ -144,9 +177,16 @@ export function ExperienceDetail({
         </h1>
 
         <div className="text-muted-foreground mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
-          <span className="text-foreground text-sm font-semibold">
-            {experience.author?.displayName ?? "بی‌نام"}
-          </span>
+          {experience.author ? (
+            <Link
+              href={`/users/${experience.author.id}`}
+              className="text-foreground hover:text-brand-700 text-sm font-semibold"
+            >
+              {experience.author.displayName ?? "بی‌نام"}
+            </Link>
+          ) : (
+            <span className="text-foreground text-sm font-semibold">بی‌نام</span>
+          )}
           {experience.author?.province && (
             <>
               <span aria-hidden="true">•</span>
@@ -252,6 +292,18 @@ export function ExperienceDetail({
               </div>
             </div>
           </section>
+        )}
+
+        {!experience.isDraft && (
+          <div className="mt-4">
+            <ThanksButton
+              targetType="experience"
+              targetId={experience.id}
+              thanked={experience.isThankedByMe}
+              thanksCount={experience.thanksCount}
+              onToggle={toggleThanks}
+            />
+          </div>
         )}
 
         {canEdit && !editing && (

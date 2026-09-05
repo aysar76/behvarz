@@ -20,6 +20,7 @@ function buildExperience(overrides: Partial<ExperienceRow> = {}): ExperienceRow 
     needsReview: false,
     moderation: "visible",
     moderationNote: null,
+    thanksCount: 0,
     sourceProblemId: null,
     publishedAt: new Date("2026-01-01T00:00:00Z"),
     reviewedAt: null,

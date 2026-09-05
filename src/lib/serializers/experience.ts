@@ -50,20 +50,22 @@ export interface ExperienceRow {
   result: string;
   lessons: string | null;
   suggestion: string | null;
-  status: ExperienceStatus;
+status: ExperienceStatus;
   isDraft: boolean;
   needsReview: boolean;
   moderation: ModerationState;
   moderationNote: string | null;
+  thanksCount: number;
   sourceProblemId: string | null;
+  sourceProblem: { id: string; title: string } | null;
   publishedAt: Date | null;
   reviewedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
   author: ExperienceAuthorRow | null;
   tags: ExperienceTagRow[];
-  sourceProblem?: { id: string; title: string } | null;
   reuses?: ExperienceReuseRow[];
+  thanks?: { userId: string; targetId: string }[];
   references?: ExperienceReferenceRow[];
   _count?: { references: number; reuses: number };
 }
@@ -101,6 +103,7 @@ export interface SerializedExperience {
   needsReview: boolean;
   moderation: ModerationState;
   moderationNote: string | null;
+  thanksCount: number;
   sourceProblemId: string | null;
   sourceProblemTitle: string | null;
   publishedAt: string | null;
@@ -115,6 +118,9 @@ export interface SerializedExperience {
   isReusedByMe: boolean;
   myReuse: SerializedExperienceReuse | null;
   reuses: SerializedExperienceReuse[];
+  isSavedByMe: boolean;
+  isFollowedByMe: boolean;
+  isThankedByMe: boolean;
 }
 
 function serializeAuthor(
@@ -145,6 +151,10 @@ function serializeReuse(reuse: ExperienceReuseRow): SerializedExperienceReuse {
 
 export interface SerializeExperienceOptions {
   currentUserId?: string;
+  savedSet?: Set<string>;
+  followedSet?: Set<string>;
+  followedTags?: Set<string>;
+  thankedIds?: Set<string>;
 }
 
 export function serializeExperience(
@@ -181,6 +191,7 @@ export function serializeExperience(
     needsReview: experience.needsReview,
     moderation: experience.moderation,
     moderationNote: experience.moderationNote,
+    thanksCount: experience.thanksCount,
     sourceProblemId: experience.sourceProblemId,
     sourceProblemTitle: experience.sourceProblem?.title ?? null,
     publishedAt: experience.publishedAt?.toISOString() ?? null,
@@ -195,6 +206,15 @@ export function serializeExperience(
     isReusedByMe: myReuse !== null,
     myReuse: myReuse ? serializeReuse(myReuse) : null,
     reuses: reuses.map(serializeReuse),
+    isSavedByMe:
+      (options.savedSet?.has(experience.id) ?? false) &&
+      options.currentUserId !== undefined,
+    isFollowedByMe:
+      (options.followedSet?.has(experience.id) ?? false) &&
+      options.currentUserId !== undefined,
+    isThankedByMe:
+      (options.thankedIds?.has(experience.id) ?? false) &&
+      options.currentUserId !== undefined,
   };
 }
 

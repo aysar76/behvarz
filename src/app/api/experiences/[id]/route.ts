@@ -9,6 +9,7 @@ import { auditLog } from "@/lib/audit";
 import { scanSensitiveContent } from "@/lib/content-safety";
 import { experienceUpdateSchema } from "@/lib/validations/experience";
 import { getExperienceRow, syncExperienceTags } from "@/lib/experiences";
+import { getInteractionState } from "@/lib/interactions";
 import {
   serializeExperience,
   type ExperienceRow,
@@ -22,16 +23,70 @@ const REUSE_INCLUDE = {
   user: { select: { id: true, displayName: true } },
 } as const;
 
-export async function GET(
-  _request: Request,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  try {
-    const user = await requireUser();
-    const { id } = await params;
+async function serializeWithState(
+  id: string,
+  currentUserId: string,
+): Promise<{ experience: SerializedExperience; related: SerializedExperience[] }> {
+  const experience = await prisma.experience.findUnique({
+    where: { id },
+    include: {
+      author: {
+        select: {
+          id: true,
+          displayName: true,
+          province: true,
+          city: true,
+          membershipStatus: true,
+          role: true,
+        },
+      },
+      tags: { include: { tag: { select: { id: true, name: true } } } },
+      sourceProblem: { select: { id: true, title: true } },
+      reuses: { include: REUSE_INCLUDE, orderBy: { createdAt: "desc" } },
+      references: {
+        select: {
+          id: true,
+          answer: {
+            select: {
+              id: true,
+              problem: { select: { id: true, title: true } },
+            },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 20,
+      },
+      thanks: {
+        where: { userId: currentUserId },
+        select: { targetId: true },
+      },
+      _count: { select: { references: true, reuses: true } },
+    },
+  });
 
-    const experience = await prisma.experience.findUnique({
-      where: { id },
+  if (!experience) {
+    throw new AppError("NOT_FOUND", "تجربه یافت نشد");
+  }
+
+  const isModerator = await canModerate(currentUserId);
+  if (experience.moderation !== "visible" && !isModerator) {
+    throw new AppError("NOT_FOUND", "تجربه یافت نشد");
+  }
+
+  const state = await getInteractionState(currentUserId);
+
+  let related: SerializedExperience[] = [];
+  const tagNames = experience.tags.map((item) => item.tag.name);
+  if (tagNames.length > 0) {
+    const relatedRows = await prisma.experience.findMany({
+      where: {
+        id: { not: experience.id },
+        isDraft: false,
+        publishedAt: { not: null },
+        moderation: "visible",
+        status: { not: "archived" },
+        tags: { some: { tag: { name: { in: tagNames } } } },
+      },
       include: {
         author: {
           select: {
@@ -44,74 +99,45 @@ export async function GET(
           },
         },
         tags: { include: { tag: { select: { id: true, name: true } } } },
-        sourceProblem: { select: { id: true, title: true } },
-        reuses: { include: REUSE_INCLUDE, orderBy: { createdAt: "desc" } },
-        references: {
-          select: {
-            id: true,
-            answer: {
-              select: {
-                id: true,
-                problem: { select: { id: true, title: true } },
-              },
-            },
-          },
-          orderBy: { createdAt: "desc" },
-          take: 20,
-        },
         _count: { select: { references: true, reuses: true } },
       },
+      orderBy: { createdAt: "desc" },
+      take: 5,
     });
-
-    if (!experience) {
-      throw new AppError("NOT_FOUND", "تجربه یافت نشد");
-    }
-
-    const isModerator = await canModerate(user.id);
-    if (experience.moderation !== "visible" && !isModerator) {
-      throw new AppError("NOT_FOUND", "تجربه یافت نشد");
-    }
-
-    let related: SerializedExperience[] = [];
-    const tagNames = experience.tags.map((item) => item.tag.name);
-    if (tagNames.length > 0) {
-      const relatedRows = await prisma.experience.findMany({
-        where: {
-          id: { not: experience.id },
-          isDraft: false,
-          publishedAt: { not: null },
-          moderation: "visible",
-          status: { not: "archived" },
-          tags: { some: { tag: { name: { in: tagNames } } } },
-        },
-        include: {
-          author: {
-            select: {
-              id: true,
-              displayName: true,
-              province: true,
-              city: true,
-              membershipStatus: true,
-              role: true,
-            },
-          },
-          tags: { include: { tag: { select: { id: true, name: true } } } },
-          _count: { select: { references: true, reuses: true } },
-        },
-        orderBy: { createdAt: "desc" },
-        take: 5,
-      });
-      related = (relatedRows as unknown as ExperienceRow[]).map((row) =>
-        serializeExperience(row),
-      );
-    }
-
-    return jsonOk({
-      experience: serializeExperience(experience as unknown as ExperienceRow, {
-        currentUserId: user.id,
+    related = (relatedRows as unknown as ExperienceRow[]).map((row) =>
+      serializeExperience(row, {
+        currentUserId,
+        savedSet: state.savedSet,
+        followedSet: state.followedExperiences,
+        followedTags: state.followedTags,
       }),
-      related,
-    });
+    );
+  }
+
+  const serialized = serializeExperience(
+    experience as unknown as ExperienceRow,
+    {
+      currentUserId,
+      savedSet: state.savedSet,
+      followedSet: state.followedExperiences,
+      followedTags: state.followedTags,
+      thankedIds: new Set(experience.thanks.map((item) => item.targetId)),
+    },
+  );
+
+  return { experience: serialized, related };
+}
+
+export async function GET(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  try {
+    const user = await requireUser();
+    const { id } = await params;
+
+    const { experience, related } = await serializeWithState(id, user.id);
+    return jsonOk({ experience, related });
   } catch (error) {
     return jsonError(error);
   }
@@ -127,23 +153,23 @@ export async function PATCH(
     assertPermission(user, "experiences:update:own");
     const { id } = await params;
 
-    const experience = await getExperienceRow(id);
-    if (!experience) {
+    const current = await getExperienceRow(id);
+    if (!current) {
       throw new AppError("NOT_FOUND", "تجربه یافت نشد");
     }
-    if (experience.authorId !== user.id) {
+    if (current.authorId !== user.id) {
       throw new AppError(
         "FORBIDDEN",
         "فقط نویسنده می‌تواند تجربه را ویرایش کند",
       );
     }
-    if (experience.moderation === "removed") {
+    if (current.moderation === "removed") {
       throw new AppError(
         "CONFLICT",
         "این تجربه حذف شده است و قابل ویرایش نیست",
       );
     }
-    if (experience.status === "archived") {
+    if (current.status === "archived") {
       throw new AppError(
         "CONFLICT",
         "تجربه بایگانی‌شده قابل ویرایش نیست",
@@ -171,15 +197,15 @@ export async function PATCH(
     }
     const sensitive = scanSensitiveContent(...sensitiveFields);
 
-    if (input.isDraft === true && experience.isDraft === false) {
+    if (input.isDraft === true && current.isDraft === false) {
       throw new AppError(
         "CONFLICT",
         "تجربه منتشرشده را نمی‌توان به پیش‌نویس برگرداند",
       );
     }
 
-    const publishing = input.isDraft === false && experience.isDraft === true;
-    let needsReview = experience.needsReview;
+    const publishing = input.isDraft === false && current.isDraft === true;
+    let needsReview = current.needsReview;
     if (sensitive.length > 0) {
       if (input.sensitiveAcknowledged !== true) {
         throw new AppError(
@@ -207,13 +233,13 @@ export async function PATCH(
       data.suggestion = input.suggestion || null;
     if (input.isDraft !== undefined) data.isDraft = input.isDraft;
     if (publishing) {
-      data.publishedAt = experience.publishedAt ?? new Date();
+      data.publishedAt = current.publishedAt ?? new Date();
       data.needsReview = needsReview;
       data.status = needsReview
         ? "under_review"
-        : experience.status === "under_review"
+        : current.status === "under_review"
           ? "user_generated"
-          : experience.status;
+          : current.status;
     }
 
     await prisma.experience.update({
@@ -234,31 +260,8 @@ export async function PATCH(
       ip,
     });
 
-    const updated = await prisma.experience.findUnique({
-      where: { id },
-      include: {
-        author: {
-          select: {
-            id: true,
-            displayName: true,
-            province: true,
-            city: true,
-            membershipStatus: true,
-            role: true,
-          },
-        },
-        tags: { include: { tag: { select: { id: true, name: true } } } },
-        sourceProblem: { select: { id: true, title: true } },
-        reuses: { include: REUSE_INCLUDE, orderBy: { createdAt: "desc" } },
-        _count: { select: { references: true, reuses: true } },
-      },
-    });
-
-    return jsonOk({
-      experience: serializeExperience(updated as unknown as ExperienceRow, {
-        currentUserId: user.id,
-      }),
-    });
+    const { experience } = await serializeWithState(id, user.id);
+    return jsonOk({ experience });
   } catch (error) {
     return jsonError(error);
   }

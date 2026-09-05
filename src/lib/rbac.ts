@@ -30,6 +30,10 @@ export type Permission =
   | "membership:review"
   | "users:manage"
   | "audit:read"
+  | "interactions:follow"
+  | "interactions:save"
+  | "interactions:thanks"
+  | "profile:read:other"
   | "problems:create"
   | "problems:update:own"
   | "problems:answer"
@@ -45,6 +49,10 @@ export type Permission =
   | "reports:review";
 
 const CONTENT_PERMISSIONS: readonly Permission[] = [
+  "interactions:follow",
+  "interactions:save",
+  "interactions:thanks",
+  "profile:read:other",
   "problems:create",
   "problems:update:own",
   "problems:answer",

@@ -96,6 +96,27 @@ enum ExperienceReuseOutcome {
   unsuccessful
 }
 
+// NOTE (فاز ۵): تعاملات حرفه‌ای و سرمایه روایت (پایه).
+// دنبال‌کردن، ذخیره محتوا و «تشکر حرفه‌ای» به‌جای لایک عمومی.
+// هیچ داده بیمار در مدل داده وجود ندارد (رجوع به docs/data-privacy-rules.md).
+
+enum FollowTargetType {
+  tag
+  problem
+  experience
+  user
+}
+
+enum SavedTargetType {
+  problem
+  experience
+}
+
+enum ThanksTargetType {
+  answer
+  experience
+}
+
 model User {
   id                  String           @id @default(cuid())
   phone               String           @unique
@@ -122,6 +143,10 @@ model User {
   problemReports     ContentReport[]
   experiences        Experience[]
   experienceReuses   ExperienceReuse[]
+  follows            Follow[]
+  savedItems         SavedItem[]
+  thanks             ProfessionalThanks[]
+  thanksReceived     ProfessionalThanks[] @relation("thanksReceived")
 }
 
 model Problem {
@@ -174,12 +199,14 @@ model ProblemAnswer {
   moderationNote         String?
   needsReview            Boolean         @default(false)
   helpfulCount           Int             @default(0)
+  thanksCount            Int             @default(0)
   createdAt              DateTime        @default(now())
   updatedAt              DateTime        @updatedAt
 
   helpfulMarks ProblemAnswerHelpful[]
   reports      ContentReport[]
   references   ExperienceReference[]
+  thanks       ProfessionalThanks[]
 
   @@index([problemId])
 }
@@ -238,12 +265,13 @@ model Experience {
   result          String
   lessons         String?
   suggestion      String?
-  status          ExperienceStatus @default(user_generated)
-  isDraft         Boolean          @default(false)
-  needsReview     Boolean          @default(false)
-  moderation      ModerationState  @default(visible)
-  moderationNote  String?
-  sourceProblemId String?
+  status           ExperienceStatus @default(user_generated)
+  isDraft          Boolean          @default(false)
+  needsReview      Boolean          @default(false)
+  moderation       ModerationState  @default(visible)
+  moderationNote   String?
+  thanksCount      Int              @default(0)
+  sourceProblemId  String?
   sourceProblem   Problem?         @relation(fields: [sourceProblemId], references: [id], onDelete: SetNull)
   publishedAt     DateTime?
   reviewedAt      DateTime?
@@ -254,6 +282,7 @@ model Experience {
   references ExperienceReference[]
   reuses     ExperienceReuse[]
   reports    ContentReport[]
+  thanks     ProfessionalThanks[]
 
   @@index([status])
   @@index([moderation])
@@ -298,6 +327,54 @@ model ExperienceReuse {
   @@unique([experienceId, userId])
   @@index([experienceId])
   @@index([userId])
+}
+
+// NOTE (فاز ۵): تعاملات حرفه‌ای — دنبال‌کردن.
+// targetType + targetId مشخص می‌کند چه چیزی دنبال شده است (برچسب/مسئله/تجربه/عضو).
+// دنبال‌کردن عضو فقط با رعایت سیاست حریم خصوصی انجام می‌شود (visibility).
+model Follow {
+  id         String           @id @default(cuid())
+  userId     String
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  targetType FollowTargetType
+  targetId   String
+  createdAt  DateTime         @default(now())
+
+  @@unique([userId, targetType, targetId])
+  @@index([targetType, targetId])
+}
+
+// NOTE (فاز ۵): ذخیره محتوا (خواندن بعدی).
+model SavedItem {
+  id         String          @id @default(cuid())
+  userId     String
+  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  targetType SavedTargetType
+  targetId   String
+  createdAt  DateTime        @default(now())
+
+  @@unique([userId, targetType, targetId])
+  @@index([targetType, targetId])
+}
+
+// NOTE (فاز ۵): «تشکر حرفه‌ای» به‌جای لایک عمومی.
+// کاربر به ازای هر هدف فقط یک‌بار می‌تواند تشکر کند.
+model ProfessionalThanks {
+  id         String           @id @default(cuid())
+  userId     String
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  targetType ThanksTargetType
+  targetId   String
+  answerId   String?
+  answer     ProblemAnswer?   @relation(fields: [answerId], references: [id], onDelete: Cascade)
+  experienceId String?
+  experience Experience?      @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+  receivedById String
+  receivedBy   User           @relation("thanksReceived", fields: [receivedById], references: [id], onDelete: Cascade)
+  createdAt  DateTime         @default(now())
+
+  @@unique([userId, targetType, targetId])
+  @@index([targetType, targetId])
 }
 
 model ContentReport {
