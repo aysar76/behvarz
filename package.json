@@ -19,6 +19,7 @@
     "db:studio": "prisma studio",
     "backup": "node scripts/backup.mjs",
     "restore": "node scripts/restore.mjs",
+    "db:seed": "node scripts/seed-demo.mjs",
     "check:all": "pnpm lint && pnpm typecheck && pnpm test:run && pnpm build"
   },
   "dependencies": {
@@ -55,5 +56,8 @@
     "typescript": "^5",
     "vitest": "^5.0.0"
   },
-  "packageManager": "pnpm@11.16.0"
+  "packageManager": "pnpm@11.16.0",
+  "prisma": {
+    "seed": "node scripts/seed-demo.mjs"
+  }
 }

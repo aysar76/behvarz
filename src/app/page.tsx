@@ -93,12 +93,10 @@ export default async function Home() {
           </Badge>
 
           <h1 className="text-foreground text-3xl leading-[1.5] font-extrabold tracking-tight md:text-5xl md:leading-[1.4]">
-            سیب محل کار است؛
-            <br />
             <span className="from-brand-600 to-brand-400 bg-gradient-to-l bg-clip-text text-transparent">
               {siteConfig.name}
             </span>{" "}
-            خانه حرفه‌ای است.
+            خانه حرفه‌ای بهورزان
           </h1>
 
           <p className="text-muted-foreground max-w-xl text-base leading-7 md:text-lg">
