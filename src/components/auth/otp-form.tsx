@@ -15,6 +15,10 @@ interface FieldErrors {
   code?: string;
 }
 
+function toPersianDigits(value: string): string {
+  return value.replace(/\d/g, (digit) => "۰۱۲۳۴۵۶۷۸۹"[Number(digit)]);
+}
+
 export function OtpForm() {
   const router = useRouter();
 
@@ -76,6 +80,8 @@ export function OtpForm() {
       }
       if (body.data?.devCode) {
         setDevCode(body.data.devCode);
+      } else {
+        setDevCode(null);
       }
       setCode("");
       setStep("code");
@@ -123,22 +129,23 @@ export function OtpForm() {
   }
 
   return (
-    <div className="space-y-4">
+    <div dir="rtl" className="space-y-5">
       {error && (
         <p
           role="alert"
-          className="border-destructive/30 bg-destructive/5 text-destructive rounded-md border px-3 py-2 text-sm"
+          aria-live="assertive"
+          className="border-destructive/30 bg-destructive/5 text-destructive rounded-lg border px-3 py-2.5 text-sm leading-6"
         >
           {error}
         </p>
       )}
 
       {step === "phone" ? (
-        <>
+        <div className="space-y-4">
           <div className="space-y-1.5">
             <label
               htmlFor="phone"
-              className="text-foreground text-sm font-medium"
+              className="text-foreground block text-sm font-medium"
             >
               شماره موبایل
             </label>
@@ -146,32 +153,40 @@ export function OtpForm() {
               id="phone"
               type="tel"
               inputMode="numeric"
+              autoComplete="tel"
               dir="ltr"
+              className="h-12 text-base tracking-wide"
               placeholder="09123456789"
               value={phone}
               invalid={Boolean(fieldErrors.phone)}
+              aria-describedby={fieldErrors.phone ? "phone-error" : undefined}
               onChange={(event) => setPhone(event.target.value)}
-              autoComplete="tel"
             />
             {fieldErrors.phone && (
-              <p className="text-destructive text-xs">{fieldErrors.phone}</p>
+              <p
+                id="phone-error"
+                className="text-destructive text-xs font-medium"
+              >
+                {fieldErrors.phone}
+              </p>
             )}
           </div>
           <Button
             type="button"
             fullWidth
+            className="h-12 text-base"
             loading={loading}
             onClick={requestCode}
           >
             دریافت کد تأیید
           </Button>
-        </>
+        </div>
       ) : (
-        <>
+        <div className="space-y-4">
           <div className="space-y-1.5">
             <label
               htmlFor="code"
-              className="text-foreground text-sm font-medium"
+              className="text-foreground block text-sm font-medium"
             >
               کد تأیید ۶ رقمی
             </label>
@@ -180,35 +195,52 @@ export function OtpForm() {
               type="text"
               inputMode="numeric"
               dir="ltr"
+              className="h-12 text-base tracking-[0.4em]"
               placeholder="------"
               maxLength={6}
               value={code}
               invalid={Boolean(fieldErrors.code)}
+              aria-describedby={fieldErrors.code ? "code-error" : undefined}
               onChange={(event) =>
                 setCode(event.target.value.replace(/\D/g, "").slice(0, 6))
               }
             />
             {fieldErrors.code && (
-              <p className="text-destructive text-xs">{fieldErrors.code}</p>
+              <p
+                id="code-error"
+                className="text-destructive text-xs font-medium"
+              >
+                {fieldErrors.code}
+              </p>
             )}
             {devCode && (
-              <p className="bg-brand-50 text-brand-800 rounded-md px-3 py-2 text-xs">
-                کد آزمایشی (توسعه): {devCode}
-              </p>
+              <div
+                aria-live="polite"
+                className="border-brand-200 bg-brand-50 text-brand-900 flex flex-wrap items-center gap-x-2 rounded-lg border px-3 py-2.5 text-sm leading-6"
+              >
+                <span>کد تأیید موقت:</span>
+                <span
+                  dir="ltr"
+                  className="text-brand-800 bg-brand-100 rounded-md px-2 py-0.5 font-bold tracking-widest select-all"
+                >
+                  {toPersianDigits(devCode)}
+                </span>
+              </div>
             )}
           </div>
           <Button
             type="button"
             fullWidth
+            className="h-12 text-base"
             loading={loading}
             onClick={verifyCode}
           >
             ورود
           </Button>
-          <div className="flex items-center justify-between text-sm">
+          <div className="border-border flex items-center justify-between gap-3 border-t pt-4 text-sm">
             <button
               type="button"
-              className="text-muted-foreground hover:text-foreground"
+              className="text-muted-foreground hover:text-foreground transition-colors"
               onClick={() => {
                 setStep("phone");
                 setError(null);
@@ -220,14 +252,14 @@ export function OtpForm() {
               type="button"
               disabled={resendIn > 0}
               onClick={requestCode}
-              className="text-primary disabled:text-muted-foreground/60 disabled:cursor-not-allowed"
+              className="text-primary hover:text-brand-700 disabled:text-muted-foreground/60 transition-colors disabled:cursor-not-allowed"
             >
               {resendIn > 0
                 ? `ارسال مجدد تا ${resendIn} ثانیه`
                 : "ارسال مجدد کد"}
             </button>
           </div>
-        </>
+        </div>
       )}
     </div>
   );

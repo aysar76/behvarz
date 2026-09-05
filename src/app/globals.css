@@ -4,6 +4,8 @@
   --font-sans:
     var(--font-iransansx), ui-sans-serif, system-ui, "Segoe UI", sans-serif;
 
+  --font-vazirmatn: "Vazirmatn", Tahoma, Arial, sans-serif;
+
   --color-brand-50: #effaf4;
   --color-brand-100: #d8f3e4;
   --color-brand-200: #b1e6cb;

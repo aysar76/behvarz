@@ -6,7 +6,12 @@ const EnvSchema = z.object({
     .enum(["development", "test", "production"])
     .default("development"),
   DATABASE_URL: z.string().min(1).default("file:./dev.db"),
-  OTP_PROVIDER: z.enum(["dev"]).default("dev"),
+  OTP_PROVIDER: z.enum(["dev", "sms"]).default("dev"),
+  DEV_SHOW_OTP: z
+    .string()
+    .optional()
+    .default("false")
+    .transform((v) => v === "true"),
   APP_ORIGIN: z.string().url().or(z.literal("")).optional(),
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
   TRUST_PROXY: z

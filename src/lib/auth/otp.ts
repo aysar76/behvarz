@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db";
 import { randomDigits, safeEqual, sha256 } from "@/lib/crypto";
 
-export const OTP_TTL_MS = 10 * 60 * 1000;
+export const OTP_TTL_MS = 5 * 60 * 1000;
 export const OTP_MAX_ATTEMPTS = 5;
 
 export type OtpVerifyResult =
@@ -9,6 +9,17 @@ export type OtpVerifyResult =
   | { ok: false; reason: "not_found" | "expired" | "attempts" | "invalid" };
 
 export async function issueOtp(phone: string): Promise<string> {
+  // کدهای قبلی همان شماره منقضی می‌شوند تا فقط آخرین کد قابل استفاده باشد.
+  await prisma.otpCode.updateMany({
+    where: {
+      phone,
+      purpose: "login",
+      consumedAt: null,
+      expiresAt: { gt: new Date() },
+    },
+    data: { expiresAt: new Date() },
+  });
+
   const code = randomDigits(6);
   await prisma.otpCode.create({
     data: {

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
+import "vazirmatn/Vazirmatn-font-face.css";
 import "./globals.css";
 
 const iransansx = localFont({

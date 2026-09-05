@@ -50,7 +50,7 @@ describe("OtpForm", () => {
       body: JSON.stringify({ phone: "09123456789" }),
     });
     expect(await screen.findByLabelText("کد تأیید ۶ رقمی")).toBeInTheDocument();
-    expect(screen.getByText(/123456/)).toBeInTheDocument();
+    expect(screen.getByText("۱۲۳۴۵۶")).toBeInTheDocument();
   });
 
   it("verifies the code and redirects to onboarding for a new user", async () => {

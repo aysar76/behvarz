@@ -5,6 +5,7 @@ import { issueOtp } from "@/lib/auth/otp";
 import { getOtpProvider } from "@/lib/auth/otp-provider";
 import { isRateLimited } from "@/lib/auth/rate-limit";
 import { getClientIp } from "@/lib/auth/session";
+import { env } from "@/lib/env";
 import { requestOtpSchema } from "@/lib/validations/auth";
 
 const PHONE_RATE = { limit: 3, windowMs: 10 * 60 * 1000 };
@@ -49,7 +50,7 @@ export async function POST(request: Request) {
 
     return jsonOk({
       sent: result.ok,
-      ...(process.env.NODE_ENV !== "production" && result.devCode
+      ...(env.DEV_SHOW_OTP && result.devCode
         ? { devCode: result.devCode }
         : {}),
     });
