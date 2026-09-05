@@ -16,6 +16,7 @@ export const mainNav: NavItem[] = [
   { label: "بانک تجربه", href: "/experiences" },
   { label: "کشف دانش", href: "/discover" },
   { label: "حلقه‌های همیار", href: "/circles" },
+  { label: "آکادمی", href: "/academy" },
   { label: "خوراک حرفه‌ای", href: "/feed" },
   { label: "پروفایل", href: "/me" },
 ];

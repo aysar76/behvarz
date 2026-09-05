@@ -88,6 +88,25 @@ describe("hasPermission", () => {
     expect(hasPermission("member", "moderation:terms")).toBe(false);
     expect(hasPermission("member", "tags:manage")).toBe(false);
   });
+
+  it("lets members read and learn from the academy", () => {
+    expect(hasPermission("member", "academy:read")).toBe(true);
+    expect(hasPermission("member", "academy:learn")).toBe(true);
+    expect(hasPermission("member", "academy:manage")).toBe(false);
+  });
+
+  it("lets admins manage the academy", () => {
+    expect(hasPermission("admin", "academy:read")).toBe(true);
+    expect(hasPermission("admin", "academy:learn")).toBe(true);
+    expect(hasPermission("admin", "academy:manage")).toBe(true);
+    expect(hasPermission("super_admin", "academy:manage")).toBe(true);
+    expect(hasPermission("content_moderator", "academy:manage")).toBe(false);
+  });
+
+  it("denies guests academy access", () => {
+    expect(hasPermission("guest", "academy:read")).toBe(false);
+    expect(hasPermission("guest", "academy:learn")).toBe(false);
+  });
 });
 
 describe("can", () => {

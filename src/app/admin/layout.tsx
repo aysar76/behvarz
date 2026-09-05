@@ -13,6 +13,7 @@ const adminLinks = [
   { href: "/admin/sensitive-terms", label: "واژه‌های حساس" },
   { href: "/admin/tags", label: "برچسب‌ها" },
   { href: "/admin/decisions", label: "تاریخچه تصمیم‌ها" },
+  { href: "/admin/academy", label: "آکادمی" },
 ];
 
 export default async function AdminLayout({

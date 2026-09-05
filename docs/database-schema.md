@@ -572,6 +572,139 @@
 
 > UNIQUE: `[userId, type]`؛ Index: `[userId]`.
 
+### Course (فاز ۱۱)
+
+مسیر یادگیری کوتاه آکادمی مسئله‌محور:
+
+| فیلد               | نوع                     | توضیح                                            |
+| ------------------ | ----------------------- | ------------------------------------------------ |
+| id                 | String PK               | شناسه                                            |
+| slug               | String UNIQUE           | شناسه خوانا (`vaccination-communication`)        |
+| title              | String                  | عنوان                                            |
+| description        | String                  | توضیح                                            |
+| level              | CourseLevel             | مقدماتی/متوسط/پیشرفته                            |
+| status             | CourseStatus            | draft/published/archived                         |
+| ownerId            | FK → User (Cascade)     | مالک/نویسنده محتوا                               |
+| version            | Int (1)                 | نسخه محتوا (در هر ویرایش افزایش می‌یابد)         |
+| reviewedAt         | DateTime?               | آخرین تاریخ بازبینی                              |
+| emoji              | String?                 | نماد بصری دوره                                   |
+| isPaid             | Boolean (false)         | آماده‌سازی دوره پولی (بدون درگاه)                |
+| relatedProblemId   | FK → Problem? (SetNull) | مسئله مرتبط                                      |
+| relatedExperienceId| FK → Experience? (SetNull)| تجربه مرتبط (Case Study)                        |
+| publishedAt        | DateTime?               | زمان انتشار                                       |
+| createdAt/updatedAt| DateTime                | زمان‌ها                                          |
+
+> Index: `[status]`، `[ownerId]`. درس‌ها (`Lesson`)، پرسش‌ها (`CourseQuizQuestion`)، ثبت‌نام‌ها (`CourseEnrollment`)، پیشرفت (`LessonProgress`)، تلاش آزمونک (`QuizAttempt`)، کاربرد میدانی (`FieldApplication`) و برچسب‌ها (`CourseTag`).
+
+### Lesson (فاز ۱۱)
+
+درس کم‌حجم یک دوره:
+
+| فیلد           | نوع                  | توضیح                                    |
+| -------------- | -------------------- | ---------------------------------------- |
+| id             | String PK            | شناسه                                    |
+| courseId       | FK → Course (Cascade)| دوره                                     |
+| title          | String               | عنوان                                    |
+| summary        | String?              | خلاصه                                    |
+| body           | String               | محتوای اصلی (متنی)                       |
+| contentType    | LessonContentType    | text/audio/video                         |
+| mediaUrl       | String?              | آدرس رسانه (بدون آپلود داخلی)           |
+| durationMinutes| Int?                 | مدت تقریبی                              |
+| order          | Int (0)              | ترتیب                                    |
+| isOptional     | Boolean (false)      | درس اختیاری (در تکمیل دوره لحاظ نمی‌شود) |
+| createdAt/updatedAt | DateTime       | زمان‌ها                                  |
+
+> Index: `[courseId]`.
+
+### CourseQuizQuestion (فاز ۱۱)
+
+پرسش آزمونک درس — گزینه صحیح **فقط سمت سرور**:
+
+| فیلد        | نوع                  | توضیح                    |
+| ----------- | -------------------- | ------------------------ |
+| id          | String PK            | شناسه                    |
+| lessonId    | FK → Lesson (Cascade)| درس                      |
+| question    | String               | متن پرسش                |
+| options     | Json                 | آرایه `{ text }` گزینه‌ها |
+| correctIndex| Int                  | اندیس گزینه صحیح (سرور) |
+| explanation | String?              | توضیح                    |
+| order       | Int (0)              | ترتیب                    |
+
+> Index: `[lessonId]`.
+
+### CourseEnrollment (فاز ۱۱)
+
+ثبت‌نام کاربر در دوره:
+
+| فیلد        | نوع                  | توضیح                |
+| ----------- | -------------------- | -------------------- |
+| id          | String PK            | شناسه                |
+| courseId    | FK → Course (Cascade)| دوره                 |
+| userId      | FK → User (Cascade)  | کاربر                |
+| enrolledAt  | DateTime             | زمان ثبت‌نام         |
+| completedAt | DateTime?            | زمان تکمیل دوره      |
+
+> UNIQUE: `[courseId, userId]`.
+
+### LessonProgress (فاز ۱۱)
+
+پیشرفت هر کاربر در هر درس:
+
+| فیلد        | نوع                     | توضیح                  |
+| ----------- | ----------------------- | ---------------------- |
+| id          | String PK               | شناسه                  |
+| lessonId    | FK → Lesson (Cascade)   | درس                    |
+| userId      | FK → User (Cascade)     | کاربر                  |
+| status      | LessonProgressStatus    | not_started/in_progress/completed |
+| quizPassed  | Boolean (false)         | گذراندن آزمونک         |
+| completedAt | DateTime?               | زمان تکمیل             |
+| createdAt/updatedAt | DateTime      | زمان‌ها                |
+
+> UNIQUE: `[lessonId, userId]`.
+
+### QuizAttempt (فاز ۱۱)
+
+سابقه تلاش آزمونک:
+
+| فیلد     | نوع                  | توضیح          |
+| -------- | -------------------- | -------------- |
+| id       | String PK            | شناسه          |
+| lessonId | FK → Lesson (Cascade)| درس            |
+| userId   | FK → User (Cascade)  | کاربر          |
+| score    | Int                  | پاسخ درست      |
+| total    | Int                  | کل پرسش‌ها     |
+| passed   | Boolean              | قبولی          |
+| createdAt| DateTime             | زمان           |
+
+> Index: `[lessonId]`، `[userId]`.
+
+### FieldApplication (فاز ۱۱)
+
+«ثبت کاربرد میدانی» — بستن حلقه «آموزش → سنجش → کاربرد»:
+
+| فیلد     | نوع                       | توضیح              |
+| -------- | ------------------------- | ------------------ |
+| id       | String PK                 | شناسه              |
+| lessonId | FK → Lesson (Cascade)     | درس                |
+| courseId | FK → Course (Cascade)     | دوره               |
+| userId   | FK → User (Cascade)       | کاربر              |
+| summary  | String                    | خلاصه کاربرد       |
+| outcome  | FieldApplicationOutcome   | successful/partial/unsuccessful |
+| createdAt| DateTime                  | زمان               |
+
+> Index: `[lessonId]`، `[courseId]`، `[userId]`.
+
+### CourseTag (فاز ۱۱)
+
+برچسب‌های موضوعی دوره (برای پیشنهاد مبتنی بر علایق/مهارت/مسائل):
+
+| فیلد   | نوع                  | توضیح |
+| ------ | -------------------- | ----- |
+| courseId | FK → Course (Cascade) | دوره  |
+| tagId  | FK → Tag (Cascade)   | برچسب |
+
+> PK مرکب: `[courseId, tagId]`.
+
 ## قواعد
 
 - **هیچ داده بیمار** در مدل داده ذخیره نمی‌شود (رجوع به `data-privacy-rules.md`).

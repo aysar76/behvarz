@@ -285,6 +285,11 @@ model User {
   notifications       Notification[]           @relation("notificationRecipient")
   notificationsActed  Notification[]           @relation("notificationActor")
   notificationPreferences NotificationPreference[]
+  ownedCourses        Course[]                 @relation("courseOwner")
+  courseEnrollments   CourseEnrollment[]       @relation("courseEnrollmentUser")
+  lessonProgress      LessonProgress[]         @relation("lessonProgressUser")
+  quizAttempts        QuizAttempt[]            @relation("quizAttemptUser")
+  fieldApplications   FieldApplication[]       @relation("fieldApplicationUser")
 }
 
 model Problem {
@@ -318,6 +323,7 @@ model Problem {
   statusHistory ProblemStatusChange[]
   reports       ContentReport[]
   experiences   Experience[]
+  relatedCourses Course[]
 
   @@index([status])
   @@index([moderation])
@@ -378,6 +384,7 @@ model Tag {
   isActive    Boolean         @default(true)
   problems    ProblemTag[]
   experiences ExperienceTag[]
+  courses     CourseTag[]
 }
 
 model ProblemTag {
@@ -422,6 +429,7 @@ model Experience {
   reuses     ExperienceReuse[]
   reports    ContentReport[]
   thanks     ProfessionalThanks[]
+  relatedCourses Course[]
 
   @@index([status])
   @@index([moderation])
@@ -922,4 +930,178 @@ model NotificationPreference {
 
   @@unique([userId, type])
   @@index([userId])
+}
+
+// NOTE (فاز ۱۱): آکادمی مسئله‌محور — مسیرهای یادگیری کوتاه، درس‌های کم‌حجم،
+// آزمونک و «ثبت کاربرد میدانی» برای بستن حلقه «آموزش → سنجش → کاربرد».
+// محتوا مالک/نسخه/تاریخ بازبینی دارد؛ هیچ داده بیمار و هیچ ادعای مدرک رسمی وجود ندارد.
+// هیچ داده بیمار در مدل داده وجود ندارد (رجوع به docs/data-privacy-rules.md).
+
+enum CourseLevel {
+  beginner
+  intermediate
+  advanced
+}
+
+enum CourseStatus {
+  draft
+  published
+  archived
+}
+
+enum LessonContentType {
+  text
+  audio
+  video
+}
+
+enum LessonProgressStatus {
+  not_started
+  in_progress
+  completed
+}
+
+enum FieldApplicationOutcome {
+  successful
+  partial
+  unsuccessful
+}
+
+model Course {
+  id            String       @id @default(cuid())
+  slug          String       @unique
+  title         String
+  description   String
+  level         CourseLevel  @default(beginner)
+  status        CourseStatus @default(draft)
+  ownerId       String
+  owner         User         @relation("courseOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  version       Int          @default(1)
+  reviewedAt    DateTime?
+  emoji         String?
+  isPaid        Boolean      @default(false)
+  relatedProblemId  String?
+  relatedProblem   Problem?  @relation(fields: [relatedProblemId], references: [id], onDelete: SetNull)
+  relatedExperienceId String?
+  relatedExperience  Experience? @relation(fields: [relatedExperienceId], references: [id], onDelete: SetNull)
+  publishedAt   DateTime?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  lessons      Lesson[]
+  enrollments  CourseEnrollment[]
+  tags         CourseTag[]
+  applications FieldApplication[]
+
+  @@index([status])
+  @@index([ownerId])
+}
+
+model Lesson {
+  id             String             @id @default(cuid())
+  courseId       String
+  course         Course             @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  title          String
+  summary        String?
+  body           String
+  contentType    LessonContentType  @default(text)
+  mediaUrl       String?
+  durationMinutes Int?
+  order          Int                @default(0)
+  isOptional     Boolean            @default(false)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  quizQuestions  CourseQuizQuestion[]
+  progress       LessonProgress[]
+  attempts       QuizAttempt[]
+  applications   FieldApplication[]
+
+  @@index([courseId])
+}
+
+model CourseQuizQuestion {
+  id           String  @id @default(cuid())
+  lessonId     String
+  lesson       Lesson  @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  question     String
+  options      Json
+  correctIndex Int
+  explanation  String?
+  order        Int     @default(0)
+
+  @@index([lessonId])
+}
+
+model CourseEnrollment {
+  id          String   @id @default(cuid())
+  courseId    String
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User     @relation("courseEnrollmentUser", fields: [userId], references: [id], onDelete: Cascade)
+  enrolledAt  DateTime @default(now())
+  completedAt DateTime?
+
+  @@unique([courseId, userId])
+  @@index([courseId])
+  @@index([userId])
+}
+
+model LessonProgress {
+  id           String               @id @default(cuid())
+  lessonId     String
+  lesson       Lesson               @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User                 @relation("lessonProgressUser", fields: [userId], references: [id], onDelete: Cascade)
+  status       LessonProgressStatus @default(not_started)
+  quizPassed   Boolean              @default(false)
+  completedAt  DateTime?
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+
+  @@unique([lessonId, userId])
+  @@index([lessonId])
+  @@index([userId])
+}
+
+model QuizAttempt {
+  id        String   @id @default(cuid())
+  lessonId  String
+  lesson    Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation("quizAttemptUser", fields: [userId], references: [id], onDelete: Cascade)
+  score     Int
+  total     Int
+  passed    Boolean
+  createdAt DateTime @default(now())
+
+  @@index([lessonId])
+  @@index([userId])
+}
+
+model FieldApplication {
+  id           String                 @id @default(cuid())
+  lessonId     String
+  lesson       Lesson                 @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  courseId     String
+  course       Course                 @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User                   @relation("fieldApplicationUser", fields: [userId], references: [id], onDelete: Cascade)
+  summary      String
+  outcome      FieldApplicationOutcome @default(successful)
+  createdAt    DateTime               @default(now())
+
+  @@index([lessonId])
+  @@index([courseId])
+  @@index([userId])
+}
+
+model CourseTag {
+  courseId String
+  tagId    String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  tag      Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([courseId, tagId])
+  @@index([tagId])
 }
