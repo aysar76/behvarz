@@ -17,6 +17,8 @@
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
     "db:studio": "prisma studio",
+    "backup": "node scripts/backup.mjs",
+    "restore": "node scripts/restore.mjs",
     "check:all": "pnpm lint && pnpm typecheck && pnpm test:run && pnpm build"
   },
   "dependencies": {

@@ -43,6 +43,13 @@ jobs:
       - name: Test
         run: pnpm test:run
 
+      - name: Migration check (deployable on a clean database)
+        run: |
+          mkdir -p /tmp/behvarz-migrate
+          DATABASE_URL="file:/tmp/behvarz-migrate/check.db" npx prisma migrate deploy --config prisma7.config.ts
+        env:
+          DATABASE_URL: "file:/tmp/behvarz-migrate/check.db"
+
       - name: Build
         run: pnpm build
         env:

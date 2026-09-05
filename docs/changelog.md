@@ -1,5 +1,20 @@
 # تغییرات (Changelog)
 
+## فاز ۱۳ — سخت‌سازی، مقیاس و استقرار پایدار
+
+- **Security Headers** (`next.config.ts`): CSP، `X-Frame-Options: DENY`، `X-Content-Type-Options: nosniff`، `Referrer-Policy: strict-origin-when-cross-origin`، `Permissions-Policy` و `Strict-Transport-Security` (فقط Production) + `output: "standalone"`.
+- **CSRF** (`src/proxy.ts` + `src/lib/csrf.ts`): بررسی `Origin`/`Referer` برای همه درخواست‌های تغییردهنده `/api/*`؛ تست واحد.
+- **Health Check** (`GET /api/health`): وضعیت DB + uptime + timestamp (force-dynamic).
+- **Validation محیطی** (`src/lib/env.ts`): اعتبارسنجی `NODE_ENV`/`DATABASE_URL`/`OTP_PROVIDER`/`APP_ORIGIN`/`LOG_LEVEL`/`TRUST_PROXY` با zod؛ Fail-fast در Production.
+- **کش واژه‌های حساس** (`src/lib/ttl-cache.ts` + `moderation.ts`): `getActiveSensitiveTerms` با TTL ۶۰ ثانیه (بستن PH7-3).
+- **تست‌های جدید (واحد + یکپارچه)**:
+  - `csrf.test.ts`، `ttl-cache.test.ts`، `validations/notification.test.ts`، `notifications.test.ts`، `peer.test.ts` (جفت‌سازی همیار و وضعیت درخواست).
+  - **Integration** `src/lib/integration/critical-paths.test.ts`: با دیتابیس واقعی SQLite موقت (`prisma db push`)؛ جست‌وجو/کشف، حذف پیش‌نویس/مخفی از جست‌وجو، کشف علاقه‌محور و نیمه‌تمام، سریالایز مسئله. (۴ تست)
+- **Docker + استقرار**: `Dockerfile` (چندمرحله‌ای، standalone، حجم `/data`) + `.dockerignore` + `docs/deployment-guide.md`.
+- **پشتیبان‌گیری/بازیابی**: `scripts/backup.mjs` (اسنپ‌شات online با `db.backup`) و `scripts/restore.mjs` (با `integrity_check`) + اسکریپت‌های `pnpm backup`/`pnpm restore` + `docs/backup-and-restore.md`. **Restore به‌صورت عملی آزمایش شد.**
+- **مستندات عملیاتی**: `docs/security-review.md`، `docs/incident-response.md`، `docs/monitoring.md`، `docs/api-contracts.md`.
+- آمار تست: ۲۹۶ تست (۴۲ فایل) — نسبت به فاز ۱۲ (+۳۴ تست).
+
 ## فاز ۱۲ — باشگاه مزایا و مشارکت
 
 - **فهرست ارائه‌دهندگان تأییدشده** (`/benefits`): ارائه‌دهنده با دسته‌بندی (سلامت، آموزش، تجهیزات، بیمه، حمل‌ونقل، ارتباطات، فروش و خدمات، سایر)، توضیح، شرایط استفاده، وب‌سایت، نکته تماس و وضعیت (پیش‌نویس/تأییدشده/بایگانی‌شده). فقط ارائه‌دهندگان تأییدشده برای اعضا قابل مشاهده‌اند.

@@ -7,7 +7,25 @@ import type {
 import { prisma } from "@/lib/db";
 import { AppError } from "@/lib/errors";
 import { auditLog } from "@/lib/audit";
-import { scanSensitiveContent, type SensitiveMatch } from "@/lib/content-safety";
+import { TtlCache } from "@/lib/ttl-cache";
+import {
+  scanSensitiveContent,
+  type SensitiveMatch,
+} from "@/lib/content-safety";
+
+const sensitiveTermCache = new TtlCache<string[]>({ ttlMs: 60_000 });
+
+async function getActiveSensitiveTerms(): Promise<string[]> {
+  const cached = sensitiveTermCache.get("active");
+  if (cached) return cached;
+  const terms = await prisma.sensitiveTerm.findMany({
+    where: { isActive: true },
+    select: { term: true },
+  });
+  const values = terms.map((item) => item.term);
+  sensitiveTermCache.set("active", values);
+  return values;
+}
 
 /** کاربری که حسابش معلق/محدود شده نمی‌تواند محتوای جدید منتشر کند. */
 export function assertAccountCanCreate(user: User): void {
@@ -244,16 +262,15 @@ export async function scanContentForModeration(
 ): Promise<SensitiveMatch[]> {
   const [staticMatches, activeTerms] = await Promise.all([
     Promise.resolve(scanSensitiveContent(...texts)),
-    prisma.sensitiveTerm.findMany({
-      where: { isActive: true },
-      select: { term: true },
-    }),
+    getActiveSensitiveTerms(),
   ]);
 
   const termMatches: SensitiveMatch[] = [];
-  for (const { term } of activeTerms) {
+  for (const term of activeTerms) {
     if (!term.trim()) continue;
-    const found = texts.some((text) => text?.toLowerCase().includes(term.toLowerCase()));
+    const found = texts.some((text) =>
+      text?.toLowerCase().includes(term.toLowerCase()),
+    );
     if (found) {
       termMatches.push({ code: "managed_term", label: `واژهٔ حساس: ${term}` });
     }
