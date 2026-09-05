@@ -11,7 +11,7 @@ import { PROBLEM_REPORT_REASONS } from "@/lib/constants/problem";
 export interface ReportDialogProps {
   open: boolean;
   onClose: () => void;
-  targetType: "problem" | "answer";
+  targetType: "problem" | "answer" | "experience";
   targetId: string;
 }
 

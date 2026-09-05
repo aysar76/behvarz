@@ -24,6 +24,13 @@ export const PROBLEM_LIST_INCLUDE = {
 export const ANSWER_DETAIL_INCLUDE = {
   author: { select: AUTHOR_SELECT },
   helpfulMarks: { select: { userId: true } },
+  references: {
+    include: {
+      experience: {
+        select: { id: true, slug: true, title: true, status: true },
+      },
+    },
+  },
 } as const;
 
 export async function getProblemRow(id: string): Promise<ProblemRow | null> {

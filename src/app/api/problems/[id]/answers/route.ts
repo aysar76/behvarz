@@ -63,6 +63,34 @@ export async function POST(
       }
     }
 
+    const slugs = [
+      ...new Set(
+        (input.experienceSlugs ?? [])
+          .map((slug) => slug.trim().split("/").filter(Boolean).pop() ?? "")
+          .filter(Boolean),
+      ),
+    ];
+    let experienceIds: string[] = [];
+    if (slugs.length > 0) {
+      const experiences = await prisma.experience.findMany({
+        where: {
+          slug: { in: slugs },
+          isDraft: false,
+          publishedAt: { not: null },
+          moderation: "visible",
+          status: { not: "archived" },
+        },
+        select: { id: true },
+      });
+      if (experiences.length !== slugs.length) {
+        throw new AppError(
+          "VALIDATION",
+          "یکی از تجربه‌های ارجاع‌شده یافت نشد یا قابل نمایش نیست",
+        );
+      }
+      experienceIds = experiences.map((experience) => experience.id);
+    }
+
     const nextStatus = nextStatusAfterAnswer(problem.status);
 
     const result = await prisma.$transaction(async (tx) => {
@@ -76,6 +104,15 @@ export async function POST(
         },
         include: ANSWER_DETAIL_INCLUDE,
       });
+
+      if (experienceIds.length > 0) {
+        await tx.experienceReference.createMany({
+          data: experienceIds.map((experienceId) => ({
+            experienceId,
+            answerId: answer.id,
+          })),
+        });
+      }
 
       if (nextStatus !== problem.status) {
         await tx.problem.update({
@@ -101,13 +138,22 @@ export async function POST(
       action: "problem.answer",
       entityType: "ProblemAnswer",
       entityId: result.id,
-      details: { problemId: problem.id, needsReview: sensitive.length > 0 },
+      details: {
+        problemId: problem.id,
+        needsReview: sensitive.length > 0,
+        referenceCount: experienceIds.length,
+      },
       ip,
+    });
+
+    const saved = await prisma.problemAnswer.findUnique({
+      where: { id: result.id },
+      include: ANSWER_DETAIL_INCLUDE,
     });
 
     return jsonOk(
       {
-        answer: serializeAnswer(result as unknown as AnswerRow, user.id),
+        answer: serializeAnswer(saved as unknown as AnswerRow, user.id),
         problemStatus: nextStatus,
       },
       { status: 201 },

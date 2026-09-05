@@ -32,6 +32,17 @@ export interface AnswerRow {
   updatedAt: Date;
   author: ProblemAuthorRow;
   helpfulMarks?: { userId: string }[];
+  references?: ExperienceReferenceRow[];
+}
+
+export interface ExperienceReferenceRow {
+  id: string;
+  experience: {
+    id: string;
+    slug: string;
+    title: string;
+    status: string;
+  };
 }
 
 export interface StatusHistoryRow {
@@ -91,6 +102,14 @@ export interface SerializedAnswer {
   isHelpfulByMe: boolean;
   createdAt: string;
   author: SerializedProblemAuthor;
+  references: SerializedExperienceRef[];
+}
+
+export interface SerializedExperienceRef {
+  id: string;
+  slug: string;
+  title: string;
+  status: string;
 }
 
 export interface SerializedStatusChange {
@@ -171,6 +190,15 @@ export function serializeAnswer(
       city: null,
       isVerified: false,
     },
+    references:
+      answer.references
+        ?.filter((ref) => ref.experience.status !== "archived")
+        .map((ref) => ({
+          id: ref.experience.id,
+          slug: ref.experience.slug,
+          title: ref.experience.title,
+          status: ref.experience.status,
+        })) ?? [],
   };
 }
 
@@ -243,6 +271,12 @@ export interface ReportRow {
   reporter: { id: string; displayName: string | null };
   problem: ReportProblemRow | null;
   answer: ReportAnswerRow | null;
+  experience: ReportExperienceRow | null;
+}
+
+export interface ReportExperienceRow {
+  id: string;
+  title: string;
 }
 
 export interface SerializedReport {
@@ -261,7 +295,9 @@ export function serializeReport(report: ReportRow): SerializedReport {
     ? `پاسخ در مسئله «${report.answer.problem.title}»`
     : report.problem
       ? `مسئله «${report.problem.title}»`
-      : "هدف نامشخص";
+      : report.experience
+        ? `تجربه «${report.experience.title}»`
+        : "هدف نامشخص";
 
   return {
     id: report.id,

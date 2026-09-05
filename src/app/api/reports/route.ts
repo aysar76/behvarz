@@ -37,6 +37,13 @@ export async function POST(request: Request) {
       if (!problem || problem.moderation !== "visible") {
         throw new AppError("NOT_FOUND", "مسئله یافت نشد");
       }
+    } else if (input.targetType === "experience") {
+      const experience = await prisma.experience.findUnique({
+        where: { id: input.targetId },
+      });
+      if (!experience || experience.moderation !== "visible") {
+        throw new AppError("NOT_FOUND", "تجربه یافت نشد");
+      }
     } else {
       const answer = await prisma.problemAnswer.findUnique({
         where: { id: input.targetId },
@@ -51,6 +58,8 @@ export async function POST(request: Request) {
         reporterId: user.id,
         problemId: input.targetType === "problem" ? input.targetId : null,
         answerId: input.targetType === "answer" ? input.targetId : null,
+        experienceId:
+          input.targetType === "experience" ? input.targetId : null,
         reason: input.reason,
         note: input.note ?? null,
       },

@@ -53,7 +53,9 @@ export async function POST(
       action: `report.${input.action}`,
       entityType: "ContentReport",
       entityId: id,
-      details: { targetId: report.answerId ?? report.problemId },
+      details: {
+        targetId: report.answerId ?? report.problemId ?? report.experienceId,
+      },
       ip,
     });
 

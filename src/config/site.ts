@@ -13,7 +13,7 @@ export type NavItem = {
 export const mainNav: NavItem[] = [
   { label: "خانه", href: "/" },
   { label: "اتاق مسئله", href: "/problems" },
-  { label: "بانک تجربه", href: "/experiences", disabled: true },
+  { label: "بانک تجربه", href: "/experiences" },
   { label: "حلقه‌های همیار", href: "/circles", disabled: true },
   { label: "پروفایل", href: "/me" },
 ];

@@ -29,6 +29,23 @@ describe("hasPermission", () => {
     expect(hasPermission("super_admin", "audit:read")).toBe(true);
     expect(hasPermission("admin", "audit:read")).toBe(false);
   });
+
+  it("lets members create and reuse experiences", () => {
+    expect(hasPermission("member", "experiences:create")).toBe(true);
+    expect(hasPermission("member", "experiences:update:own")).toBe(true);
+    expect(hasPermission("member", "experiences:reuse")).toBe(true);
+    expect(hasPermission("member", "experiences:archive")).toBe(true);
+    expect(hasPermission("member", "experiences:report")).toBe(true);
+  });
+
+  it("lets moderators review experiences", () => {
+    expect(hasPermission("content_moderator", "experiences:review")).toBe(true);
+    expect(hasPermission("member", "experiences:review")).toBe(false);
+  });
+
+  it("lets admins review experiences", () => {
+    expect(hasPermission("admin", "experiences:review")).toBe(true);
+  });
 });
 
 describe("can", () => {

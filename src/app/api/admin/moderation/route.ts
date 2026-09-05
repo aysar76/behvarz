@@ -10,6 +10,10 @@ import {
   type ProblemRow,
   type ReportRow,
 } from "@/lib/serializers/problem";
+import {
+  serializeExperience,
+  type ExperienceRow,
+} from "@/lib/serializers/experience";
 
 const AUTHOR_SELECT = {
   id: true,
@@ -29,7 +33,7 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const onlyReports = url.searchParams.get("reports") === "1";
 
-    const [problems, reports] = await Promise.all([
+    const [problems, experiences, reports] = await Promise.all([
       onlyReports
         ? []
         : prisma.problem.findMany({
@@ -40,6 +44,25 @@ export async function GET(request: Request) {
               author: { select: AUTHOR_SELECT },
               tags: { include: { tag: { select: { id: true, name: true } } } },
               _count: { select: { answers: true } },
+            },
+            orderBy: { updatedAt: "desc" },
+            take: 50,
+          }),
+      onlyReports
+        ? []
+        : prisma.experience.findMany({
+            where: {
+              OR: [
+                { needsReview: true },
+                { moderation: { not: "visible" } },
+                { status: { in: ["under_review"] } },
+              ],
+            },
+            include: {
+              author: { select: AUTHOR_SELECT },
+              tags: { include: { tag: { select: { id: true, name: true } } } },
+              sourceProblem: { select: { id: true, title: true } },
+              _count: { select: { references: true, reuses: true } },
             },
             orderBy: { updatedAt: "desc" },
             take: 50,
@@ -56,6 +79,7 @@ export async function GET(request: Request) {
               problem: { select: { id: true, title: true } },
             },
           },
+          experience: { select: { id: true, title: true } },
         },
         orderBy: { createdAt: "desc" },
         take: 50,
@@ -72,6 +96,9 @@ export async function GET(request: Request) {
     return jsonOk({
       problems: (problems as unknown as ProblemRow[]).map((row) =>
         serializeProblem(row, { revealAuthor: true }),
+      ),
+      experiences: (experiences as unknown as ExperienceRow[]).map((row) =>
+        serializeExperience(row),
       ),
       reports: (reports as unknown as ReportRow[]).map(serializeReport),
     });

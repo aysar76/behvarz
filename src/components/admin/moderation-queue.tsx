@@ -7,13 +7,16 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { useToast } from "@/components/ui/toast";
 import { formatRelativeTime } from "@/lib/dates";
 import { REPORT_STATUS_LABELS } from "@/lib/constants/problem";
+import { EXPERIENCE_STATUS_LABELS } from "@/lib/constants/experience";
 import type {
   SerializedProblem,
   SerializedReport,
 } from "@/lib/serializers/problem";
+import type { SerializedExperience } from "@/lib/serializers/experience";
 
 interface ModerationQueueData {
   problems: SerializedProblem[];
+  experiences: SerializedExperience[];
   reports: SerializedReport[];
 }
 
@@ -33,7 +36,7 @@ export function ModerationQueue() {
     if (!res.ok || !body.ok) {
       throw new Error(body.error?.message ?? "خطا در دریافت صف بررسی");
     }
-    return body.data ?? { problems: [], reports: [] };
+    return body.data ?? { problems: [], experiences: [], reports: [] };
   }, []);
 
   const load = useCallback(async () => {
@@ -105,6 +108,56 @@ export function ModerationQueue() {
         return;
       }
       toast({ title: "گزارش بررسی شد", tone: "success" });
+      await load();
+    } catch {
+      toast({ title: "خطا در ارتباط با سرور", tone: "danger" });
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  async function moderateExperience(id: string, action: string) {
+    setBusyId(id);
+    try {
+      const res = await fetch(`/api/moderation/experiences/${id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action }),
+      });
+      const body = (await res.json()) as {
+        ok: boolean;
+        error?: { message: string };
+      };
+      if (!res.ok || !body.ok) {
+        toast({ title: body.error?.message ?? "خطا در نظارت", tone: "danger" });
+        return;
+      }
+      toast({ title: "اقدام نظارت ثبت شد", tone: "success" });
+      await load();
+    } catch {
+      toast({ title: "خطا در ارتباط با سرور", tone: "danger" });
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  async function reviewExperience(id: string, action: string) {
+    setBusyId(id);
+    try {
+      const res = await fetch(`/api/experiences/${id}/review`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action }),
+      });
+      const body = (await res.json()) as {
+        ok: boolean;
+        error?: { message: string };
+      };
+      if (!res.ok || !body.ok) {
+        toast({ title: body.error?.message ?? "خطا در بررسی", tone: "danger" });
+        return;
+      }
+      toast({ title: "وضعیت تجربه به‌روزرسانی شد", tone: "success" });
       await load();
     } catch {
       toast({ title: "خطا در ارتباط با سرور", tone: "danger" });
@@ -196,6 +249,118 @@ export function ModerationQueue() {
                       variant="outline"
                       loading={busyId === problem.id}
                       onClick={() => moderateProblem(problem.id, "unhide")}
+                    >
+                      نمایش دوباره
+                    </Button>
+                  )}
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section>
+        <h2 className="text-foreground mb-3 text-lg font-bold">
+          تجربه‌های نیازمند بررسی
+        </h2>
+        {data.experiences.length === 0 ? (
+          <EmptyState
+            title="صف بررسی تجربه‌ها خالی است"
+            description="تجربه‌ای در انتظار نظارت نیست."
+          />
+        ) : (
+          <div className="space-y-3">
+            {data.experiences.map((experience) => (
+              <article
+                key={experience.id}
+                className="border-border bg-card shadow-card rounded-xl border p-4"
+              >
+                <div className="flex flex-wrap items-center gap-2">
+                  <a
+                    href={`/experiences/${experience.slug}`}
+                    className="text-foreground hover:text-brand-700 text-sm font-bold"
+                  >
+                    {experience.title}
+                  </a>
+                  {experience.needsReview && (
+                    <Badge tone="warning">نیاز به بررسی</Badge>
+                  )}
+                  {experience.status === "under_review" && (
+                    <Badge tone="warning">در بررسی</Badge>
+                  )}
+                  {experience.moderation !== "visible" && (
+                    <Badge tone="danger">غیرقابل‌نمایش</Badge>
+                  )}
+                  {experience.status === "featured" && (
+                    <Badge tone="success">برگزیده</Badge>
+                  )}
+                </div>
+                <p className="text-muted-foreground mt-1 text-xs">
+                  {experience.author?.displayName ?? "بی‌نام"} {" • "}
+                  {EXPERIENCE_STATUS_LABELS[experience.status]} {" • "}
+                  {formatRelativeTime(experience.createdAt)}
+                </p>
+                <p className="text-muted-foreground mt-2 line-clamp-2 text-sm">
+                  {experience.situation}
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {experience.status === "under_review" && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      loading={busyId === experience.id}
+                      onClick={() =>
+                        reviewExperience(experience.id, "approve")
+                      }
+                    >
+                      تأیید (بررسی‌شده)
+                    </Button>
+                  )}
+                  {experience.status !== "featured" &&
+                    experience.status !== "under_review" && (
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        loading={busyId === experience.id}
+                        onClick={() =>
+                          reviewExperience(experience.id, "feature")
+                        }
+                      >
+                        برگزیده‌کردن
+                      </Button>
+                    )}
+                  {experience.moderation === "visible" ? (
+                    <>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        loading={busyId === experience.id}
+                        onClick={() =>
+                          moderateExperience(experience.id, "hide")
+                        }
+                      >
+                        مخفی‌کردن
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        loading={busyId === experience.id}
+                        onClick={() =>
+                          moderateExperience(experience.id, "remove")
+                        }
+                      >
+                        حذف
+                      </Button>
+                    </>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      loading={busyId === experience.id}
+                      onClick={() =>
+                        moderateExperience(experience.id, "unhide")
+                      }
                     >
                       نمایش دوباره
                     </Button>

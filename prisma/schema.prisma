@@ -79,20 +79,37 @@ enum ReportStatus {
   rejected
 }
 
+// NOTE (فاز ۴): بانک تجربه‌های میدانی.
+// هیچ داده بیمار در مدل داده وجود ندارد (رجوع به docs/data-privacy-rules.md).
+
+enum ExperienceStatus {
+  user_generated
+  under_review
+  reviewed
+  featured
+  archived
+}
+
+enum ExperienceReuseOutcome {
+  successful
+  partial
+  unsuccessful
+}
+
 model User {
-  id                  String            @id @default(cuid())
-  phone               String            @unique
-  role                Role              @default(member)
-  membershipStatus    MembershipStatus  @default(none)
+  id                  String           @id @default(cuid())
+  phone               String           @unique
+  role                Role             @default(member)
+  membershipStatus    MembershipStatus @default(none)
   displayName         String?
   province            String?
   city                String?
   workYears           String?
   bio                 String?
-  visibility          Visibility        @default(members)
-  onboardingCompleted Boolean           @default(false)
-  createdAt           DateTime          @default(now())
-  updatedAt           DateTime          @updatedAt
+  visibility          Visibility       @default(members)
+  onboardingCompleted Boolean          @default(false)
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
 
   skills             UserSkill[]
   interests          UserInterest[]
@@ -103,6 +120,8 @@ model User {
   problemAnswers     ProblemAnswer[]
   helpfulMarks       ProblemAnswerHelpful[]
   problemReports     ContentReport[]
+  experiences        Experience[]
+  experienceReuses   ExperienceReuse[]
 }
 
 model Problem {
@@ -135,6 +154,7 @@ model Problem {
   tags          ProblemTag[]
   statusHistory ProblemStatusChange[]
   reports       ContentReport[]
+  experiences   Experience[]
 
   @@index([status])
   @@index([moderation])
@@ -142,23 +162,24 @@ model Problem {
 }
 
 model ProblemAnswer {
-  id                    String                @id @default(cuid())
-  problemId             String
-  problem               Problem               @relation(fields: [problemId], references: [id], onDelete: Cascade)
-  authorId              String
-  author                User                  @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  body                  String
-  isClarificationRequest Boolean              @default(false)
-  isSelectedSolution    Boolean               @default(false)
-  moderation            ModerationState       @default(visible)
-  moderationNote        String?
-  needsReview           Boolean               @default(false)
-  helpfulCount          Int                   @default(0)
-  createdAt             DateTime              @default(now())
-  updatedAt             DateTime              @updatedAt
+  id                     String          @id @default(cuid())
+  problemId              String
+  problem                Problem         @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  authorId               String
+  author                 User            @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  body                   String
+  isClarificationRequest Boolean         @default(false)
+  isSelectedSolution     Boolean         @default(false)
+  moderation             ModerationState @default(visible)
+  moderationNote         String?
+  needsReview            Boolean         @default(false)
+  helpfulCount           Int             @default(0)
+  createdAt              DateTime        @default(now())
+  updatedAt              DateTime        @updatedAt
 
   helpfulMarks ProblemAnswerHelpful[]
   reports      ContentReport[]
+  references   ExperienceReference[]
 
   @@index([problemId])
 }
@@ -187,9 +208,10 @@ model ProblemStatusChange {
 }
 
 model Tag {
-  id       String       @id @default(cuid())
-  name     String       @unique
-  problems ProblemTag[]
+  id          String          @id @default(cuid())
+  name        String          @unique
+  problems    ProblemTag[]
+  experiences ExperienceTag[]
 }
 
 model ProblemTag {
@@ -202,25 +224,104 @@ model ProblemTag {
   @@index([tagId])
 }
 
+model Experience {
+  id              String           @id @default(cuid())
+  authorId        String
+  author          User             @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  slug            String           @unique
+  title           String
+  situation       String
+  conditions      String?
+  action          String
+  resources       String?
+  challenges      String?
+  result          String
+  lessons         String?
+  suggestion      String?
+  status          ExperienceStatus @default(user_generated)
+  isDraft         Boolean          @default(false)
+  needsReview     Boolean          @default(false)
+  moderation      ModerationState  @default(visible)
+  moderationNote  String?
+  sourceProblemId String?
+  sourceProblem   Problem?         @relation(fields: [sourceProblemId], references: [id], onDelete: SetNull)
+  publishedAt     DateTime?
+  reviewedAt      DateTime?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  tags       ExperienceTag[]
+  references ExperienceReference[]
+  reuses     ExperienceReuse[]
+  reports    ContentReport[]
+
+  @@index([status])
+  @@index([moderation])
+  @@index([authorId])
+  @@index([sourceProblemId])
+}
+
+model ExperienceTag {
+  experienceId String
+  tagId        String
+  experience   Experience @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+  tag          Tag        @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([experienceId, tagId])
+  @@index([tagId])
+}
+
+model ExperienceReference {
+  id           String        @id @default(cuid())
+  experienceId String
+  experience   Experience    @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+  answerId     String
+  answer       ProblemAnswer @relation(fields: [answerId], references: [id], onDelete: Cascade)
+  createdAt    DateTime      @default(now())
+
+  @@unique([experienceId, answerId])
+  @@index([experienceId])
+  @@index([answerId])
+}
+
+model ExperienceReuse {
+  id           String                 @id @default(cuid())
+  experienceId String
+  experience   Experience             @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  outcome      ExperienceReuseOutcome
+  summary      String
+  createdAt    DateTime               @default(now())
+  updatedAt    DateTime               @updatedAt
+
+  @@unique([experienceId, userId])
+  @@index([experienceId])
+  @@index([userId])
+}
+
 model ContentReport {
-  id            String        @id @default(cuid())
+  id            String         @id @default(cuid())
   reporterId    String
-  reporter      User          @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+  reporter      User           @relation(fields: [reporterId], references: [id], onDelete: Cascade)
   problemId     String?
-  problem       Problem?      @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  problem       Problem?       @relation(fields: [problemId], references: [id], onDelete: Cascade)
   answerId      String?
   answer        ProblemAnswer? @relation(fields: [answerId], references: [id], onDelete: Cascade)
+  experienceId  String?
+  experience    Experience?    @relation(fields: [experienceId], references: [id], onDelete: Cascade)
   reason        String
   note          String?
-  status        ReportStatus  @default(pending)
+  status        ReportStatus   @default(pending)
   reviewedBy    String?
   reviewedAt    DateTime?
   moderatorNote String?
-  createdAt     DateTime      @default(now())
+  createdAt     DateTime       @default(now())
 
   @@index([status])
   @@index([problemId])
   @@index([answerId])
+  @@index([experienceId])
 }
 
 model OtpCode {
@@ -265,8 +366,8 @@ model MembershipRequest {
 }
 
 model Skill {
-  id    String       @id @default(cuid())
-  name  String       @unique
+  id    String      @id @default(cuid())
+  name  String      @unique
   users UserSkill[]
 }
 
@@ -280,8 +381,8 @@ model UserSkill {
 }
 
 model Interest {
-  id    String          @id @default(cuid())
-  name  String          @unique
+  id    String         @id @default(cuid())
+  name  String         @unique
   users UserInterest[]
 }
 

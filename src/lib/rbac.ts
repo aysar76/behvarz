@@ -35,6 +35,12 @@ export type Permission =
   | "problems:answer"
   | "problems:mark-helpful"
   | "problems:report"
+  | "experiences:create"
+  | "experiences:update:own"
+  | "experiences:reuse"
+  | "experiences:archive"
+  | "experiences:report"
+  | "experiences:review"
   | "content:moderate"
   | "reports:review";
 
@@ -44,11 +50,17 @@ const CONTENT_PERMISSIONS: readonly Permission[] = [
   "problems:answer",
   "problems:mark-helpful",
   "problems:report",
+  "experiences:create",
+  "experiences:update:own",
+  "experiences:reuse",
+  "experiences:archive",
+  "experiences:report",
 ];
 
 const MODERATION_PERMISSIONS: readonly Permission[] = [
   "content:moderate",
   "reports:review",
+  "experiences:review",
 ];
 
 const PERMISSIONS_BY_ROLE: Record<Role, readonly Permission[]> = {

@@ -62,6 +62,26 @@ export function AnswerItem({
         {answer.body}
       </p>
 
+      {answer.references.length > 0 && (
+        <div className="bg-brand-50 border-brand-200 mt-3 rounded-lg border p-3">
+          <p className="text-brand-800 text-xs font-bold">
+            تجربه‌های ارجاع‌شده
+          </p>
+          <ul className="mt-1.5 space-y-1">
+            {answer.references.map((ref) => (
+              <li key={ref.id} className="text-sm">
+                <a
+                  href={`/experiences/${ref.slug}`}
+                  className="text-brand-700 font-medium underline"
+                >
+                  {ref.title}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <Button
           size="sm"

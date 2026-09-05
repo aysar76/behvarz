@@ -54,6 +54,7 @@ export function ProblemDetail({
   const [resultOutcome, setResultOutcome] = useState("successful");
   const [resultSummary, setResultSummary] = useState("");
   const [resultError, setResultError] = useState<string | null>(null);
+  const [converting, setConverting] = useState(false);
   const [reportTarget, setReportTarget] = useState<{
     type: "problem" | "answer";
     id: string;
@@ -196,6 +197,37 @@ export function ProblemDetail({
       setResultError("خطا در ارتباط با سرور");
     } finally {
       setProcessingAnswerId(null);
+    }
+  }
+
+  async function convertToExperience() {
+    setConverting(true);
+    try {
+      const res = await fetch(
+        `/api/problems/${problem.id}/convert-to-experience`,
+        { method: "POST" },
+      );
+      const body = (await res.json()) as {
+        ok: boolean;
+        data?: {
+          experience: { slug: string };
+        };
+        error?: { message: string };
+      };
+      if (!res.ok || !body.ok) {
+        toast({ title: body.error?.message ?? "خطا در تبدیل", tone: "danger" });
+        return;
+      }
+      toast({
+        title: "پیش‌نویس تجربه ساخته شد",
+        description: "جزئیات را تکمیل و منتشر کنید.",
+        tone: "success",
+      });
+      router.push(`/experiences/${body.data!.experience.slug}`);
+    } catch {
+      toast({ title: "خطا در ارتباط با سرور", tone: "danger" });
+    } finally {
+      setConverting(false);
     }
   }
 
@@ -379,6 +411,18 @@ export function ProblemDetail({
                 ثبت نتیجه اجرا
               </Button>
             )}
+            {problem.status === "solved" &&
+              problem.selectedAnswerId &&
+              !problem.isDraft && (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  loading={converting}
+                  onClick={() => void convertToExperience()}
+                >
+                  تبدیل به تجربه میدانی
+                </Button>
+              )}
             {!isLocked && (
               <Button
                 size="sm"

@@ -66,6 +66,24 @@ describe("answerSchema", () => {
     ).toBeTruthy();
   });
 
+  it("accepts experience slug references", () => {
+    expect(() =>
+      answerSchema.parse({
+        body: "تجربه من در این زمینه چنین بود...",
+        experienceSlugs: ["tajrobe-abc12345", "tajrobe-def67890"],
+      }),
+    ).not.toThrow();
+  });
+
+  it("rejects more than 3 experience references", () => {
+    expect(() =>
+      answerSchema.parse({
+        body: "تجربه من در این زمینه چنین بود...",
+        experienceSlugs: ["a", "b", "c", "d"],
+      }),
+    ).toThrow();
+  });
+
   it("rejects a too-short answer", () => {
     expect(() => answerSchema.parse({ body: "کوتاه" })).toThrow();
   });
@@ -131,6 +149,16 @@ describe("reportSchema", () => {
         targetType: "problem",
         targetId: "clx123",
         reason: "sensitive_info",
+      }),
+    ).not.toThrow();
+  });
+
+  it("accepts an experience report", () => {
+    expect(() =>
+      reportSchema.parse({
+        targetType: "experience",
+        targetId: "clx123",
+        reason: "medical_advice",
       }),
     ).not.toThrow();
   });

@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/toast";
 import { SensitiveWarning } from "@/components/problems/sensitive-warning";
@@ -18,6 +19,7 @@ export function AnswerForm({ problemId, onSubmitted }: AnswerFormProps) {
   const { toast } = useToast();
   const [body, setBody] = useState("");
   const [isClarificationRequest, setIsClarificationRequest] = useState(false);
+  const [experienceLinks, setExperienceLinks] = useState("");
   const [acknowledged, setAcknowledged] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -35,6 +37,15 @@ export function AnswerForm({ problemId, onSubmitted }: AnswerFormProps) {
       return;
     }
 
+    const slugs = [
+      ...new Set(
+        experienceLinks
+          .split(/[\n,]+/)
+          .map((link) => link.trim().split("/").filter(Boolean).pop() ?? "")
+          .filter(Boolean),
+      ),
+    ].slice(0, 3);
+
     setSubmitting(true);
     try {
       const res = await fetch(`/api/problems/${problemId}/answers`, {
@@ -43,6 +54,7 @@ export function AnswerForm({ problemId, onSubmitted }: AnswerFormProps) {
         body: JSON.stringify({
           body: body.trim(),
           isClarificationRequest,
+          experienceSlugs: slugs,
           sensitiveAcknowledged:
             sensitiveMatches.length > 0 ? acknowledged : false,
         }),
@@ -62,6 +74,7 @@ export function AnswerForm({ problemId, onSubmitted }: AnswerFormProps) {
       toast({ title: "پاسخ ثبت شد", tone: "success" });
       setBody("");
       setIsClarificationRequest(false);
+      setExperienceLinks("");
       setAcknowledged(false);
       onSubmitted(result.data!.answer, result.data!.problemStatus);
     } catch {
@@ -110,6 +123,25 @@ export function AnswerForm({ problemId, onSubmitted }: AnswerFormProps) {
           </span>
         </span>
       </label>
+
+      <div className="space-y-1.5">
+        <label
+          htmlFor="answerExperienceLinks"
+          className="text-foreground block text-sm font-medium"
+        >
+          ارجاع به تجربه (اختیاری، حداکثر ۳)
+        </label>
+        <Input
+          id="answerExperienceLinks"
+          value={experienceLinks}
+          placeholder="لینک یا اسلاگ تجربه‌های بانک تجربه، جدا با ویرگول"
+          onChange={(event) => setExperienceLinks(event.target.value)}
+        />
+        <p className="text-muted-foreground text-xs">
+          از صفحه تجربه در بانک تجربه، لینک آن را کپی کنید؛ با این کار
+          تجربه‌های مفید در مسائل واقعی دیده و اعتبار می‌گیرند.
+        </p>
+      </div>
 
       <SensitiveWarning
         matches={sensitiveMatches}

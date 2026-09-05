@@ -72,6 +72,10 @@ export const answerSchema = z.object({
     .max(MAX_ANSWER_LENGTH, `پاسخ حداکثر ${MAX_ANSWER_LENGTH} کاراکتر`),
   isClarificationRequest: z.boolean().optional(),
   sensitiveAcknowledged: z.boolean().optional(),
+  experienceSlugs: z
+    .array(z.string().trim().min(1).max(64))
+    .max(3, "حداکثر ۳ تجربه می‌توانید ارجاع دهید")
+    .optional(),
 });
 
 export const selectSolutionSchema = z.object({
@@ -98,7 +102,7 @@ export const statusUpdateSchema = z.object({
 });
 
 export const reportSchema = z.object({
-  targetType: z.enum(["problem", "answer"]),
+  targetType: z.enum(["problem", "answer", "experience"]),
   targetId: idSchema,
   reason: z.enum([
     "sensitive_info",

@@ -1,4 +1,4 @@
-# اسکیمای دیتابیس (Database Schema) — فاز ۳
+# اسکیمای دیتابیس (Database Schema) — فاز ۴
 
 **وضعیت:** به‌روزرسانی با وضعیت واقعی کد — تاریخ: مهر ۱۴۰۵
 
@@ -23,6 +23,8 @@
 | ProblemResultOutcome | successful، partial، unsuccessful                                                                 |
 | ModerationState      | visible، hidden، removed                                                                          |
 | ReportStatus         | pending، reviewing، resolved، rejected                                                            |
+| ExperienceStatus     | user_generated، under_review، reviewed، featured، archived                                        |
+| ExperienceReuseOutcome | successful، partial، unsuccessful                                                               |
 
 ## مدل‌ها
 
@@ -177,6 +179,70 @@
 
 - `Tag` (id, name UNIQUE) — برچسب‌های سراسری (مشترک با فازهای بعد).
 - `ProblemTag` — رابطه چند-به-چند مسئله/برچسب با کلید ترکیبی.
+
+### Experience (فاز ۴)
+
+| فیلد              | نوع                   | توضیح                                                          |
+| ----------------- | --------------------- | -------------------------------------------------------------- |
+| id                | String (cuid) PK      | شناسه                                                          |
+| authorId          | FK → User             | نویسنده                                                        |
+| slug              | String UNIQUE         | اسلاگ قابل اشتراک (`tajrobe-XXXXXXXX`)                         |
+| title             | String                | عنوان تجربه                                                    |
+| situation         | String                | مسئله/موقعیت                                                   |
+| conditions        | String?               | شرایط و زمینه                                                  |
+| action            | String                | اقدامی که انجام شد                                              |
+| resources         | String?               | منابع و ابزارها                                                |
+| challenges        | String?               | چالش‌ها                                                        |
+| result            | String                | نتیجه                                                          |
+| lessons           | String?               | درس‌آموخته‌ها                                                   |
+| suggestion        | String?               | پیشنهاد برای دیگران                                            |
+| status            | ExperienceStatus      | user_generated/under_review/reviewed/featured/archived          |
+| isDraft           | Boolean               | پیش‌نویس                                                       |
+| needsReview       | Boolean               | در صف بررسی محتوای حساس                                        |
+| moderation        | ModerationState       | visible/hidden/removed                                         |
+| moderationNote    | String?               | یادداشت ناظر                                                   |
+| sourceProblemId   | FK → Problem?         | مسئله مبدا (تبدیل راهکار به تجربه)                             |
+| publishedAt       | DateTime?             | زمان انتشار                                                    |
+| reviewedAt        | DateTime?             | زمان تأیید/برگزیده‌کردن توسط ناظر                              |
+| createdAt/updatedAt | DateTime            | زمان ثبت/به‌روزرسانی                                           |
+
+> Indexها: `[status]`، `[moderation]`، `[authorId]`، `[sourceProblemId]`
+
+### ExperienceTag
+
+رابطه چند-به-چند تجربه/برچسب با کلید ترکیبی (`experienceId + tagId`).
+
+### ExperienceReference
+
+ارجاع یک پاسخ به تجربه (برای «ارجاع در پاسخ‌ها»):
+
+| فیلد         | نوع              | توضیح             |
+| ------------ | ---------------- | ----------------- |
+| id           | String PK        | شناسه             |
+| experienceId | FK → Experience  | تجربه ارجاع‌شده   |
+| answerId     | FK → ProblemAnswer | پاسخ ارجاع‌دهنده |
+| createdAt    | DateTime         | زمان              |
+
+> کلید ترکیبی یکتا `[experienceId, answerId]` + Index روی هر دو. «تعداد ارجاع» بخشی از سرمایه روایت است.
+
+### ExperienceReuse
+
+«این تجربه را اجرا کردم» + ثبت نتیجه اجرای مجدد:
+
+| فیلد         | نوع                      | توضیح                                    |
+| ------------ | ------------------------ | ---------------------------------------- |
+| id           | String PK                | شناسه                                    |
+| experienceId | FK → Experience          | تجربه                                    |
+| userId       | FK → User                | کاربر اجراکننده                          |
+| outcome      | ExperienceReuseOutcome   | موفق/تا حدی/ناموفق                      |
+| summary      | String                   | خلاصه نتیجه                              |
+| createdAt/updatedAt | DateTime          | زمان ثبت/به‌روزرسانی                     |
+
+> کلید ترکیبی یکتا `[experienceId, userId]` (upsert برای به‌روزرسانی نتیجه). «تعداد اجرا + میزان موفقیت» بخشی از سرمایه روایت است و به لایک وابسته نیست.
+
+### ContentReport (به‌روزرسانی فاز ۴)
+
+علاوه بر `problemId`/`answerId`، فیلد `experienceId` (FK → Experience?) برای گزارش تجربه اضافه شد.
 
 ### ContentReport
 
