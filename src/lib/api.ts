@@ -9,7 +9,14 @@ export function jsonOk(data: unknown, init?: ResponseInit): Response {
 export function jsonError(error: unknown): Response {
   if (isAppError(error)) {
     return Response.json(
-      { ok: false, error: { code: error.code, message: error.message } },
+      {
+        ok: false,
+        error: {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+        },
+      },
       { status: error.status },
     );
   }

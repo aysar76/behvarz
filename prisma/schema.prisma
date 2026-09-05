@@ -34,6 +34,51 @@ enum Visibility {
   private
 }
 
+// NOTE (فاز ۳): اتاق مسئله — هسته محصول.
+// هیچ داده بیمار در مدل داده وجود ندارد (رجوع به docs/data-privacy-rules.md).
+
+enum ProblemStatus {
+  open
+  discussing
+  solved
+  archived
+}
+
+enum ProblemUrgency {
+  low
+  medium
+  high
+  critical
+}
+
+enum ProblemBarrierType {
+  resources
+  knowledge
+  process
+  community
+  equipment
+  other
+}
+
+enum ProblemResultOutcome {
+  successful
+  partial
+  unsuccessful
+}
+
+enum ModerationState {
+  visible
+  hidden
+  removed
+}
+
+enum ReportStatus {
+  pending
+  reviewing
+  resolved
+  rejected
+}
+
 model User {
   id                  String            @id @default(cuid())
   phone               String            @unique
@@ -54,6 +99,128 @@ model User {
   sessions           Session[]
   membershipRequests MembershipRequest[]
   auditLogs          AuditLog[]
+  problems           Problem[]
+  problemAnswers     ProblemAnswer[]
+  helpfulMarks       ProblemAnswerHelpful[]
+  problemReports     ContentReport[]
+}
+
+model Problem {
+  id               String                @id @default(cuid())
+  authorId         String
+  author           User                  @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  title            String
+  description      String
+  context          String?
+  barrierType      ProblemBarrierType    @default(other)
+  actionsTaken     String?
+  expectedOutcome  String?
+  urgency          ProblemUrgency        @default(medium)
+  isAnonymous      Boolean               @default(false)
+  status           ProblemStatus         @default(open)
+  isDraft          Boolean               @default(false)
+  needsReview      Boolean               @default(false)
+  moderation       ModerationState       @default(visible)
+  moderationNote   String?
+  conclusion       String?
+  selectedAnswerId String?
+  resultSummary    String?
+  resultOutcome    ProblemResultOutcome?
+  publishedAt      DateTime?
+  solvedAt         DateTime?
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
+
+  answers       ProblemAnswer[]
+  tags          ProblemTag[]
+  statusHistory ProblemStatusChange[]
+  reports       ContentReport[]
+
+  @@index([status])
+  @@index([moderation])
+  @@index([authorId])
+}
+
+model ProblemAnswer {
+  id                    String                @id @default(cuid())
+  problemId             String
+  problem               Problem               @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  authorId              String
+  author                User                  @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  body                  String
+  isClarificationRequest Boolean              @default(false)
+  isSelectedSolution    Boolean               @default(false)
+  moderation            ModerationState       @default(visible)
+  moderationNote        String?
+  needsReview           Boolean               @default(false)
+  helpfulCount          Int                   @default(0)
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  helpfulMarks ProblemAnswerHelpful[]
+  reports      ContentReport[]
+
+  @@index([problemId])
+}
+
+model ProblemAnswerHelpful {
+  answerId  String
+  userId    String
+  answer    ProblemAnswer @relation(fields: [answerId], references: [id], onDelete: Cascade)
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime      @default(now())
+
+  @@id([answerId, userId])
+}
+
+model ProblemStatusChange {
+  id        String         @id @default(cuid())
+  problemId String
+  problem   Problem        @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  from      ProblemStatus?
+  to        ProblemStatus
+  changedBy String
+  note      String?
+  createdAt DateTime       @default(now())
+
+  @@index([problemId])
+}
+
+model Tag {
+  id       String       @id @default(cuid())
+  name     String       @unique
+  problems ProblemTag[]
+}
+
+model ProblemTag {
+  problemId String
+  tagId     String
+  problem   Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([problemId, tagId])
+  @@index([tagId])
+}
+
+model ContentReport {
+  id            String        @id @default(cuid())
+  reporterId    String
+  reporter      User          @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+  problemId     String?
+  problem       Problem?      @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  answerId      String?
+  answer        ProblemAnswer? @relation(fields: [answerId], references: [id], onDelete: Cascade)
+  reason        String
+  note          String?
+  status        ReportStatus  @default(pending)
+  reviewedBy    String?
+  reviewedAt    DateTime?
+  moderatorNote String?
+  createdAt     DateTime      @default(now())
+
+  @@index([status])
+  @@index([problemId])
+  @@index([answerId])
 }
 
 model OtpCode {

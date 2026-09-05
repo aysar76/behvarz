@@ -55,14 +55,11 @@ export default async function Home() {
           <Link href={ctaHref}>
             <Button size="lg">{ctaLabel}</Button>
           </Link>
-          <Button
-            size="lg"
-            variant="outline"
-            disabled
-            title="از فاز ۳ فعال می‌شود"
-          >
-            پرسش در اتاق مسئله
-          </Button>
+          <Link href="/problems/new">
+            <Button size="lg" variant="outline">
+              پرسش در اتاق مسئله
+            </Button>
+          </Link>
         </div>
       </section>
 

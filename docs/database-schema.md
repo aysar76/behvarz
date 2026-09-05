@@ -1,4 +1,4 @@
-# اسکیمای دیتابیس (Database Schema) — فاز ۲
+# اسکیمای دیتابیس (Database Schema) — فاز ۳
 
 **وضعیت:** به‌روزرسانی با وضعیت واقعی کد — تاریخ: مهر ۱۴۰۵
 
@@ -12,11 +12,17 @@
 
 ## Enum ها
 
-| Enum             | مقادیر                                                                                            |
-| ---------------- | ------------------------------------------------------------------------------------------------- |
-| Role             | guest، member، verified_member، mentor، circle_facilitator، content_moderator، admin، super_admin |
-| MembershipStatus | none، pending، verified، rejected                                                                 |
-| Visibility       | public، members، private                                                                          |
+| Enum                 | مقادیر                                                                                            |
+| -------------------- | ------------------------------------------------------------------------------------------------- |
+| Role                 | guest، member، verified_member، mentor، circle_facilitator، content_moderator، admin، super_admin |
+| MembershipStatus     | none، pending، verified، rejected                                                                 |
+| Visibility           | public، members، private                                                                          |
+| ProblemStatus        | open، discussing، solved، archived                                                                |
+| ProblemUrgency       | low، medium، high، critical                                                                       |
+| ProblemBarrierType   | resources، knowledge، process، community، equipment، other                                        |
+| ProblemResultOutcome | successful، partial، unsuccessful                                                                 |
+| ModerationState      | visible، hidden، removed                                                                          |
+| ReportStatus         | pending، reviewing، resolved، rejected                                                            |
 
 ## مدل‌ها
 
@@ -101,6 +107,94 @@
 | createdAt  | DateTime   | زمان ثبت                               |
 
 > Index: `[actorId]`، `[action]`
+
+### Problem (فاز ۳)
+
+| فیلد                | نوع                   | توضیح                                                |
+| ------------------- | --------------------- | ---------------------------------------------------- |
+| id                  | String (cuid) PK      | شناسه                                                |
+| authorId            | FK → User             | نویسنده (همیشه ذخیره می‌شود حتی برای ناشناس)         |
+| title               | String                | عنوان مسئله                                          |
+| description         | String                | شرح مسئله                                            |
+| context             | String?               | زمینه/شرایط                                          |
+| barrierType         | ProblemBarrierType    | نوع مانع                                             |
+| actionsTaken        | String?               | اقدامات انجام‌شده                                    |
+| expectedOutcome     | String?               | نتیجه مورد انتظار                                    |
+| urgency             | ProblemUrgency        | فوریت                                                |
+| isAnonymous         | Boolean               | انتشار ناشناس (نام نویسنده در UI نمایش داده نمی‌شود) |
+| status              | ProblemStatus         | open/discussing/solved/archived                      |
+| isDraft             | Boolean               | پیش‌نویس                                             |
+| needsReview         | Boolean               | در صف بررسی محتوای حساس (ناظر)                       |
+| moderation          | ModerationState       | visible/hidden/removed                               |
+| moderationNote      | String?               | یادداشت ناظر                                         |
+| conclusion          | String?               | جمع‌بندی راهکار                                      |
+| selectedAnswerId    | String?               | پاسخ منتخب به‌عنوان راهکار                           |
+| resultSummary       | String?               | خلاصه نتیجه اجرا                                     |
+| resultOutcome       | ProblemResultOutcome? | نتیجه اجرا (موفق/تا حدی/ناموفق)                      |
+| publishedAt         | DateTime?             | زمان انتشار                                          |
+| solvedAt            | DateTime?             | زمان حل‌شدن                                          |
+| createdAt/updatedAt | DateTime              | زمان ثبت/به‌روزرسانی                                 |
+
+> Indexها: `[status]`، `[moderation]`، `[authorId]`
+
+### ProblemAnswer
+
+| فیلد                   | نوع             | توضیح                      |
+| ---------------------- | --------------- | -------------------------- |
+| id                     | String PK       | شناسه                      |
+| problemId              | FK → Problem    | مسئله (حذف آبشاری)         |
+| authorId               | FK → User       | نویسنده پاسخ               |
+| body                   | String          | متن پاسخ                   |
+| isClarificationRequest | Boolean         | درخواست توضیح (نه راهکار)  |
+| isSelectedSolution     | Boolean         | انتخاب‌شده به‌عنوان راهکار |
+| moderation             | ModerationState | وضعیت نظارت                |
+| moderationNote         | String?         | یادداشت ناظر               |
+| needsReview            | Boolean         | در صف بررسی محتوای حساس    |
+| helpfulCount           | Int             | شمارش «مفید بود»           |
+| createdAt/updatedAt    | DateTime        | زمان ثبت/به‌روزرسانی       |
+
+> Index: `[problemId]`
+
+### ProblemAnswerHelpful
+
+رابطه چند-به-چند (answerId + userId) با کلید ترکیبی — جلوگیری از چندباره «مفید بود».
+
+### ProblemStatusChange
+
+| فیلد      | نوع            | توضیح                        |
+| --------- | -------------- | ---------------------------- |
+| id        | String PK      | شناسه                        |
+| problemId | FK → Problem   | مسئله                        |
+| from      | ProblemStatus? | وضعیت قبلی (null برای اولین) |
+| to        | ProblemStatus  | وضعیت جدید                   |
+| changedBy | String         | شناسه تغییردهنده             |
+| note      | String?        | یادداشت                      |
+| createdAt | DateTime       | زمان                         |
+
+> Index: `[problemId]` — **تاریخچه وضعیت قابل پیگیری.**
+
+### Tag / ProblemTag
+
+- `Tag` (id, name UNIQUE) — برچسب‌های سراسری (مشترک با فازهای بعد).
+- `ProblemTag` — رابطه چند-به-چند مسئله/برچسب با کلید ترکیبی.
+
+### ContentReport
+
+| فیلد          | نوع                 | توضیح                               |
+| ------------- | ------------------- | ----------------------------------- |
+| id            | String PK           | شناسه                               |
+| reporterId    | FK → User           | گزارش‌دهنده                         |
+| problemId     | FK → Problem?       | مسئله مورد گزارش (اختیاری)          |
+| answerId      | FK → ProblemAnswer? | پاسخ مورد گزارش (اختیاری)           |
+| reason        | String              | دلیل (sensitive_info و...)          |
+| note          | String?             | توضیح گزارش‌دهنده                   |
+| status        | ReportStatus        | pending/reviewing/resolved/rejected |
+| reviewedBy    | String?             | ناظر بررسی‌کننده                    |
+| reviewedAt    | DateTime?           | زمان بررسی                          |
+| moderatorNote | String?             | یادداشت ناظر                        |
+| createdAt     | DateTime            | زمان                                |
+
+> Indexها: `[status]`، `[problemId]`، `[answerId]`
 
 ## قواعد
 

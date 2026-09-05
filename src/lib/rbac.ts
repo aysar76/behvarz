@@ -29,7 +29,27 @@ export type Permission =
   | "profile:request-verification"
   | "membership:review"
   | "users:manage"
-  | "audit:read";
+  | "audit:read"
+  | "problems:create"
+  | "problems:update:own"
+  | "problems:answer"
+  | "problems:mark-helpful"
+  | "problems:report"
+  | "content:moderate"
+  | "reports:review";
+
+const CONTENT_PERMISSIONS: readonly Permission[] = [
+  "problems:create",
+  "problems:update:own",
+  "problems:answer",
+  "problems:mark-helpful",
+  "problems:report",
+];
+
+const MODERATION_PERMISSIONS: readonly Permission[] = [
+  "content:moderate",
+  "reports:review",
+];
 
 const PERMISSIONS_BY_ROLE: Record<Role, readonly Permission[]> = {
   guest: ["auth:signin"],
@@ -38,30 +58,36 @@ const PERMISSIONS_BY_ROLE: Record<Role, readonly Permission[]> = {
     "profile:read:own",
     "profile:update:own",
     "profile:request-verification",
+    ...CONTENT_PERMISSIONS,
   ],
   verified_member: [
     "auth:signin",
     "profile:read:own",
     "profile:update:own",
     "profile:request-verification",
+    ...CONTENT_PERMISSIONS,
   ],
   mentor: [
     "auth:signin",
     "profile:read:own",
     "profile:update:own",
     "profile:request-verification",
+    ...CONTENT_PERMISSIONS,
   ],
   circle_facilitator: [
     "auth:signin",
     "profile:read:own",
     "profile:update:own",
     "profile:request-verification",
+    ...CONTENT_PERMISSIONS,
   ],
   content_moderator: [
     "auth:signin",
     "profile:read:own",
     "profile:update:own",
     "profile:request-verification",
+    ...CONTENT_PERMISSIONS,
+    ...MODERATION_PERMISSIONS,
   ],
   admin: [
     "auth:signin",
@@ -70,6 +96,8 @@ const PERMISSIONS_BY_ROLE: Record<Role, readonly Permission[]> = {
     "profile:request-verification",
     "membership:review",
     "users:manage",
+    ...CONTENT_PERMISSIONS,
+    ...MODERATION_PERMISSIONS,
   ],
   super_admin: [
     "auth:signin",
@@ -79,6 +107,8 @@ const PERMISSIONS_BY_ROLE: Record<Role, readonly Permission[]> = {
     "membership:review",
     "users:manage",
     "audit:read",
+    ...CONTENT_PERMISSIONS,
+    ...MODERATION_PERMISSIONS,
   ],
 };
 
