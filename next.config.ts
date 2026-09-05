@@ -47,7 +47,11 @@ const csp = [
 ].join("; ");
 
 const nextConfig: NextConfig = {
-  output: "standalone",
+  // Vercel injects its own deployment adapter during build, which since
+  // Next.js 16.3 conflicts with `output: 'standalone'` and crashes with
+  // `ENOENT .../next-server.js.nft.json`. Vercel doesn't need standalone,
+  // so disable it there while keeping it for Docker/self-hosting.
+  output: process.env.VERCEL ? undefined : "standalone",
   async headers() {
     return [
       {
