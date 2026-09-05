@@ -2,7 +2,8 @@
 
 @theme {
   --font-sans:
-    var(--font-iransansx), ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+    "Vazirmatn", var(--font-iransansx), ui-sans-serif, system-ui, "Segoe UI",
+    sans-serif;
 
   --font-vazirmatn: "Vazirmatn", Tahoma, Arial, sans-serif;
 

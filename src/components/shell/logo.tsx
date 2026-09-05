@@ -51,8 +51,10 @@ export function Logo({ className, href = "/" }: LogoProps) {
         </svg>
       </span>
       <span className="flex flex-col leading-tight">
-        <span className="text-base font-extrabold">{siteConfig.name}</span>
-        <span className="text-muted-foreground text-[11px]">
+        <span className="text-base font-bold whitespace-nowrap">
+          {siteConfig.name}
+        </span>
+        <span className="text-muted-foreground font-medium text-[11px] whitespace-nowrap">
           {siteConfig.tagline}
         </span>
       </span>
