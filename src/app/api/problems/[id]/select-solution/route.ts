@@ -8,6 +8,7 @@ import { auditLog } from "@/lib/audit";
 import { selectSolutionSchema } from "@/lib/validations/problem";
 import { getProblemRow, ANSWER_DETAIL_INCLUDE } from "@/lib/problems";
 import { serializeProblem, type ProblemRow } from "@/lib/serializers/problem";
+import { notifyUser } from "@/lib/notifications";
 import type { z } from "zod";
 
 type SelectSolutionInput = z.infer<typeof selectSolutionSchema>;
@@ -86,6 +87,16 @@ export async function POST(
       entityId: problem.id,
       details: { answerId: answer.id },
       ip,
+    });
+
+    await notifyUser({
+      userId: answer.authorId,
+      type: "solution_selected",
+      actorId: user.id,
+      title: "پاسخ شما به‌عنوان راهکار انتخاب شد",
+      body: problem.title,
+      targetType: "problem",
+      targetId: problem.id,
     });
 
     const updated = await prisma.problem.findUnique({

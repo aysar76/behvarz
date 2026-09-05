@@ -99,6 +99,14 @@ export function UserMenu() {
             >
               اعتراض به تصمیم
             </Link>
+            <Link
+              role="menuitem"
+              href="/notifications/settings"
+              onClick={() => setOpen(false)}
+              className="hover:bg-accent focus-visible:outline-ring block px-4 py-2.5 text-sm focus-visible:outline-2"
+            >
+              تنظیمات اعلان
+            </Link>
             {user.role === "admin" || user.role === "super_admin" ? (
               <Link
                 role="menuitem"

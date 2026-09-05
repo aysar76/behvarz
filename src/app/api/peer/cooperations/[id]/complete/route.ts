@@ -9,6 +9,7 @@ import { auditLog } from "@/lib/audit";
 import { assertAccountCanCreate, scanContentForModeration } from "@/lib/moderation";
 import { peerCooperationCompleteSchema } from "@/lib/validations/peer";
 import { requireCooperationParticipant } from "@/lib/peer";
+import { notifyUser } from "@/lib/notifications";
 import type { z } from "zod";
 
 type PeerCooperationCompleteInput = z.infer<
@@ -90,6 +91,19 @@ export async function POST(
       entityType: "PeerCooperation",
       entityId: id,
       ip,
+    });
+
+    const otherParticipantId =
+      cooperation.requesterId === user.id
+        ? cooperation.helperId
+        : cooperation.requesterId;
+    await notifyUser({
+      userId: otherParticipantId,
+      type: "cooperation_complete",
+      actorId: user.id,
+      title: "همکاری شما تکمیل شد",
+      targetType: "cooperation",
+      targetId: id,
     });
 
     return jsonOk({ status: updated.status, completedAt: updated.completedAt?.toISOString() ?? null });

@@ -9,6 +9,7 @@ import { isRateLimited } from "@/lib/auth/rate-limit";
 import { auditLog } from "@/lib/audit";
 import { peerOfferCreateSchema } from "@/lib/validations/peer";
 import { requireOpenHelpRequest } from "@/lib/peer";
+import { notifyUser } from "@/lib/notifications";
 import type { z } from "zod";
 
 type PeerOfferCreateInput = z.infer<typeof peerOfferCreateSchema>;
@@ -102,6 +103,16 @@ export async function POST(request: Request) {
       entityId: offer.id,
       details: { helpRequestId: input.helpRequestId, helperId },
       ip,
+    });
+
+    await notifyUser({
+      userId: initiator === "requester" ? helperId : requestRow.requesterId,
+      type: "cooperation_offer",
+      actorId: user.id,
+      title: "پیشنهاد همیاری جدید",
+      body: requestRow.title,
+      targetType: "cooperation",
+      targetId: offer.id,
     });
 
     return jsonOk({ offerId: offer.id }, { status: 201 });

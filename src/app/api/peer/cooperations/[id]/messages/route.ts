@@ -11,6 +11,7 @@ import { assertAccountCanCreate, scanContentForModeration } from "@/lib/moderati
 import { peerMessageSchema } from "@/lib/validations/peer";
 import { requireCooperationParticipant } from "@/lib/peer";
 import { serializePeerMessage } from "@/lib/serializers/peer";
+import { notifyUser } from "@/lib/notifications";
 import type { z } from "zod";
 
 type PeerMessageInput = z.infer<typeof peerMessageSchema>;
@@ -68,6 +69,20 @@ export async function POST(
       entityType: "PeerCooperation",
       entityId: id,
       ip,
+    });
+
+    const otherParticipantId =
+      cooperation.requesterId === user.id
+        ? cooperation.helperId
+        : cooperation.requesterId;
+    await notifyUser({
+      userId: otherParticipantId,
+      type: "cooperation_message",
+      actorId: user.id,
+      title: "پیام جدید در همکاری",
+      body: input.body.slice(0, 80),
+      targetType: "cooperation",
+      targetId: id,
     });
 
     return jsonOk(

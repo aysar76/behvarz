@@ -12,6 +12,8 @@ import { answerSchema } from "@/lib/validations/problem";
 import { nextStatusAfterAnswer } from "@/lib/problem-status";
 import { ANSWER_DETAIL_INCLUDE } from "@/lib/problems";
 import { serializeAnswer, type AnswerRow } from "@/lib/serializers/problem";
+import { notifyUser } from "@/lib/notifications";
+import { notifyMentions } from "@/lib/mention";
 import type { z } from "zod";
 
 type AnswerInput = z.infer<typeof answerSchema>;
@@ -151,6 +153,21 @@ export async function POST(
     const saved = await prisma.problemAnswer.findUnique({
       where: { id: result.id },
       include: ANSWER_DETAIL_INCLUDE,
+    });
+
+    await notifyUser({
+      userId: problem.authorId,
+      type: "problem_answer",
+      actorId: user.id,
+      title: "پاسخ جدید به مسئله شما",
+      body: problem.title,
+      targetType: "problem",
+      targetId: problem.id,
+    });
+    await notifyMentions(input.body, user.id, {
+      title: `اشاره در پاسخ به «${problem.title}»`,
+      targetType: "answer",
+      targetId: result.id,
     });
 
     return jsonOk(

@@ -7,6 +7,7 @@ import { assertPermission } from "@/lib/auth/authorization";
 import { getClientIp } from "@/lib/auth/session";
 import { z } from "zod";
 import { recordModerationDecision } from "@/lib/moderation";
+import { notifyUser } from "@/lib/notifications";
 
 const appealDecisionSchema = z.object({
   action: z.enum(["approve", "reject"]),
@@ -92,6 +93,16 @@ export async function POST(
         ip,
       });
     }
+
+    await notifyUser({
+      userId: appeal.userId,
+      type: "appeal_decision",
+      actorId: moderator.id,
+      title: approved ? "اعتراض شما پذیرفته شد" : "اعتراض شما رد شد",
+      body: input.note ?? null,
+      targetType: "appeal",
+      targetId: appeal.id,
+    });
 
     return jsonOk({ status: approved ? "approved" : "rejected" });
   } catch (error) {

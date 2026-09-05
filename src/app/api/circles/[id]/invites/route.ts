@@ -8,6 +8,7 @@ import { getClientIp } from "@/lib/auth/session";
 import { auditLog } from "@/lib/audit";
 import { circleInviteSchema } from "@/lib/validations/circle";
 import { assertCircleFacilitator, countActiveMembers } from "@/lib/circles";
+import { notifyUser } from "@/lib/notifications";
 import type { z } from "zod";
 
 type CircleInviteInput = z.infer<typeof circleInviteSchema>;
@@ -87,6 +88,15 @@ export async function POST(
       entityId: id,
       details: { userId: input.userId },
       ip,
+    });
+
+    await notifyUser({
+      userId: input.userId,
+      type: "circle_invite",
+      actorId: user.id,
+      title: `شما به حلقه «${circle.name}» دعوت شدید`,
+      targetType: "circle",
+      targetId: id,
     });
 
     return jsonOk({ invited: true }, { status: 201 });

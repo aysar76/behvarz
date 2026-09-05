@@ -1,4 +1,4 @@
-# اسکیمای دیتابیس (Database Schema) — فاز ۷
+# اسکیمای دیتابیس (Database Schema) — فاز ۸
 
 **وضعیت:** به‌روزرسانی با وضعیت واقعی کد — تاریخ: مهر ۱۴۰۵
 
@@ -537,6 +537,40 @@
 | isActive     | Boolean (true)   | فعال/غیرفعال                     |
 | createdById  | FK → User? (SetNull) | ثبت‌کننده                     |
 | createdAt    | DateTime         | زمان                             |
+
+### Notification (فاز ۸)
+
+اعلان‌های درون‌برنامه‌ای:
+
+| فیلد        | نوع                | توضیح                                             |
+| ----------- | ------------------ | ------------------------------------------------- |
+| id          | String PK          | شناسه                                             |
+| userId      | FK → User (Cascade)| گیرنده اعلان                                      |
+| type        | NotificationType   | نوع رویداد (پاسخ/ارجاع/راهکار/حلقه/همیاری/اعتراض) |
+| actorId     | FK → User? (SetNull)| عامل ایجاد رویداد                                |
+| title       | String             | عنوان اعلان                                       |
+| body        | String?            | متن کوتاه اعلان                                   |
+| targetType  | NotificationTargetType? | نوع هدف (problem/answer/experience/circle/cooperation/appeal) |
+| targetId    | String?            | شناسه هدف                                         |
+| read        | Boolean (false)    | خوانده‌شده                                        |
+| readAt      | DateTime?          | زمان خواندن                                       |
+| createdAt   | DateTime           | زمان                                              |
+
+> Index: `[userId, read]`، `[userId, createdAt]`، `[targetType, targetId]`.
+
+### NotificationPreference (فاز ۸)
+
+تنظیمات نوع اعلان هر کاربر (هر نوع با یک کلید یکتا):
+
+| فیلد      | نوع                | توضیح                    |
+| --------- | ------------------ | ------------------------ |
+| id        | String PK          | شناسه                    |
+| userId    | FK → User (Cascade)| کاربر                    |
+| type      | NotificationType   | نوع اعلان                |
+| enabled   | Boolean (true)     | فعال/غیرفعال             |
+| updatedAt | DateTime           | زمان آخرین تغییر         |
+
+> UNIQUE: `[userId, type]`؛ Index: `[userId]`.
 
 ## قواعد
 

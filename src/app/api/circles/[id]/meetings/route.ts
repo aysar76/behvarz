@@ -9,6 +9,7 @@ import { isRateLimited } from "@/lib/auth/rate-limit";
 import { auditLog } from "@/lib/audit";
 import { circleMeetingCreateSchema } from "@/lib/validations/circle";
 import { assertCircleMember } from "@/lib/circles";
+import { notifyUser } from "@/lib/notifications";
 import type { z } from "zod";
 
 type CircleMeetingCreateInput = z.infer<typeof circleMeetingCreateSchema>;
@@ -62,6 +63,28 @@ export async function POST(
       details: { meetingId: meeting.id },
       ip,
     });
+
+    const members = await prisma.circleMembership.findMany({
+      where: { circleId: id, status: "active", userId: { not: user.id } },
+      select: { userId: true },
+    });
+    const circle = await prisma.circle.findUnique({
+      where: { id },
+      select: { name: true },
+    });
+    await Promise.all(
+      members.map((member) =>
+        notifyUser({
+          userId: member.userId,
+          type: "circle_meeting",
+          actorId: user.id,
+          title: "جلسه جدید در حلقه",
+          body: circle ? `${circle.name}: ${meeting.title}` : meeting.title,
+          targetType: "circle",
+          targetId: id,
+        }),
+      ),
+    );
 
     return jsonOk(
       {

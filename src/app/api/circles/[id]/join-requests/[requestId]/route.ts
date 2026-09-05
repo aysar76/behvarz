@@ -8,6 +8,7 @@ import { getClientIp } from "@/lib/auth/session";
 import { auditLog } from "@/lib/audit";
 import { circleJoinReviewSchema } from "@/lib/validations/circle";
 import { assertCircleFacilitator, countActiveMembers } from "@/lib/circles";
+import { notifyUser } from "@/lib/notifications";
 import type { z } from "zod";
 
 type CircleJoinReviewInput = z.infer<typeof circleJoinReviewSchema>;
@@ -81,6 +82,17 @@ export async function PATCH(
       details: { requestId, userId: joinRequest.userId },
       ip,
     });
+
+    if (input.action === "approve") {
+      await notifyUser({
+        userId: joinRequest.userId,
+        type: "circle_join_accepted",
+        actorId: user.id,
+        title: "درخواست عضویت شما در حلقه پذیرفته شد",
+        targetType: "circle",
+        targetId: id,
+      });
+    }
 
     return jsonOk({ updated: true });
   } catch (error) {

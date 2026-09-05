@@ -11,9 +11,9 @@ export function MobileNav() {
   return (
     <nav
       aria-label="ناوبری موبایل"
-      className="border-border bg-background/95 fixed inset-x-0 bottom-0 z-40 border-t backdrop-blur md:hidden"
+      className="border-border bg-background/95 fixed inset-x-0 bottom-0 z-40 border-t backdrop-blur lg:hidden"
     >
-      <div className="grid grid-cols-6">
+      <div className="grid grid-cols-4">
         {mainNav.map((item) => {
           const active = item.href === pathname;
           if (item.disabled) {
