@@ -97,6 +97,8 @@ export function computeBadges(input: {
   validReferences: number;
   successfulReusesByOthers: number;
   thanksReceived: number;
+  helpfulAnswers?: number;
+  activeCircles?: number;
   isVerified: boolean;
 }): CapitalBadge[] {
   const badges: CapitalBadge[] = [];
@@ -130,6 +132,22 @@ export function computeBadges(input: {
       id: "problem-solver",
       label: "مسئله‌یاب",
       description: "دست‌کم یک مسئله را به جمع‌بندی و راهکار رسانده است.",
+      tone: "info",
+    });
+  }
+  if ((input.helpfulAnswers ?? 0) >= 1) {
+    badges.push({
+      id: "helpful-answer",
+      label: "پاسخ‌گوی مفید",
+      description: "پاسخی از او برای دیگران «مفید بود» بوده است.",
+      tone: "brand",
+    });
+  }
+  if ((input.activeCircles ?? 0) >= 1) {
+    badges.push({
+      id: "circle-member",
+      label: "همیار حلقه",
+      description: "عضو فعال یک حلقه همیار است.",
       tone: "info",
     });
   }
@@ -175,6 +193,8 @@ export function serializeCapitalProfile(input: {
   solvedProblems: CapitalProblemRow[];
   successfulReuseCount: number;
   thanksReceivedCount: number;
+  helpfulAnswers?: number;
+  activeCircles?: number;
 }): CapitalProfile {
   const publishedExperiences = input.experiences.length;
   const featuredExperiences = input.experiences.filter(
@@ -201,6 +221,8 @@ export function serializeCapitalProfile(input: {
     validReferences,
     successfulReusesByOthers,
     thanksReceived: stats.thanksReceived,
+    helpfulAnswers: input.helpfulAnswers,
+    activeCircles: input.activeCircles,
     isVerified: input.user.membershipStatus === "verified",
   });
 

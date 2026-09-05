@@ -64,7 +64,7 @@ export default async function UserCapitalPage({
   const state = await getInteractionState(viewer.id);
   const isFollowing = state.followedUsers.has(user.id);
 
-  const [experiences, solvedProblems, reuseCount, thanksCount] =
+  const [experiences, solvedProblems, reuseCount, thanksCount, helpfulAnswers, activeCircles] =
     await Promise.all([
       prisma.experience.findMany({
         where: {
@@ -110,6 +110,22 @@ export default async function UserCapitalPage({
         where: { experience: { authorId: user.id }, outcome: "successful" },
       }),
       prisma.professionalThanks.count({ where: { receivedById: user.id } }),
+      prisma.problemAnswerHelpful.count({
+        where: {
+          answer: {
+            authorId: user.id,
+            isClarificationRequest: false,
+            moderation: "visible",
+          },
+        },
+      }),
+      prisma.circleMembership.count({
+        where: {
+          userId: user.id,
+          status: "active",
+          circle: { status: "active" },
+        },
+      }),
     ]);
 
   const profile = serializeCapitalProfile({
@@ -118,6 +134,8 @@ export default async function UserCapitalPage({
     solvedProblems,
     successfulReuseCount: reuseCount,
     thanksReceivedCount: thanksCount,
+    helpfulAnswers,
+    activeCircles,
   });
 
   const isOwnProfile = user.id === viewer.id;

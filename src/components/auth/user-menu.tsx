@@ -93,6 +93,14 @@ export function UserMenu() {
             </Link>
             <Link
               role="menuitem"
+              href="/growth"
+              onClick={() => setOpen(false)}
+              className="hover:bg-accent focus-visible:outline-ring block px-4 py-2.5 text-sm focus-visible:outline-2"
+            >
+              داشبورد رشد من
+            </Link>
+            <Link
+              role="menuitem"
               href="/appeals"
               onClick={() => setOpen(false)}
               className="hover:bg-accent focus-visible:outline-ring block px-4 py-2.5 text-sm focus-visible:outline-2"

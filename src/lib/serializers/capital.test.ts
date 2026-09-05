@@ -43,6 +43,8 @@ describe("computeBadges", () => {
       validReferences: 3,
       successfulReusesByOthers: 2,
       thanksReceived: 6,
+      helpfulAnswers: 1,
+      activeCircles: 1,
       isVerified: true,
     });
     const ids = badges.map((badge) => badge.id);
@@ -50,10 +52,29 @@ describe("computeBadges", () => {
     expect(ids).toContain("experienced");
     expect(ids).toContain("featured");
     expect(ids).toContain("problem-solver");
+    expect(ids).toContain("helpful-answer");
+    expect(ids).toContain("circle-member");
     expect(ids).toContain("referenced");
     expect(ids).toContain("reused");
     expect(ids).toContain("appreciated");
     expect(ids).toContain("verified-member");
+  });
+
+  it("does not grant helpful/circle badges without evidence", () => {
+    const badges = computeBadges({
+      publishedExperiences: 0,
+      featuredExperiences: 0,
+      solvedProblems: 0,
+      validReferences: 0,
+      successfulReusesByOthers: 0,
+      thanksReceived: 0,
+      helpfulAnswers: 0,
+      activeCircles: 0,
+      isVerified: false,
+    });
+    const ids = badges.map((badge) => badge.id);
+    expect(ids).not.toContain("helpful-answer");
+    expect(ids).not.toContain("circle-member");
   });
 });
 

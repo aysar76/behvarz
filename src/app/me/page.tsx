@@ -1,10 +1,12 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { serializeUser } from "@/lib/serializers";
 import { ROLE_LABELS } from "@/lib/rbac";
 import { AppShell } from "@/components/shell/app-shell";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { ProfileForm } from "@/components/auth/profile-form";
 import { VerificationRequest } from "@/components/auth/verification-request";
 
@@ -73,6 +75,20 @@ export default async function MePage() {
         </header>
 
         <VerificationRequest user={serialized} />
+
+        <section className="border-border bg-card shadow-card flex flex-wrap items-center justify-between gap-3 rounded-xl border p-5">
+          <div>
+            <h2 className="text-foreground text-lg font-bold">
+              داشبورد رشد من
+            </h2>
+            <p className="text-muted-foreground mt-1 text-sm">
+              تصویر مشارکت واقعی، نشان‌ها و قدم بعدی پیشنهادی خود را ببینید.
+            </p>
+          </div>
+          <Link href="/growth">
+            <Button variant="outline">مشاهده داشبورد رشد</Button>
+          </Link>
+        </section>
 
         <section className="border-border bg-card shadow-card rounded-xl border p-5">
           <h2 className="text-foreground mb-4 text-lg font-bold">
