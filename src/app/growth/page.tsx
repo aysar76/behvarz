@@ -3,6 +3,8 @@ import Link from "next/link";
 import { AppShell } from "@/components/shell/app-shell";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Icon } from "@/components/ui/icon";
+import { PageHeader } from "@/components/ui/page-header";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { getGrowthDashboard } from "@/lib/growth";
 import { formatRelativeTime } from "@/lib/dates";
@@ -40,15 +42,11 @@ export default async function GrowthPage() {
   return (
     <AppShell>
       <div className="space-y-6">
-        <header>
-          <h1 className="text-foreground text-2xl font-extrabold">
-            داشبورد رشد من
-          </h1>
-          <p className="text-muted-foreground mt-1 text-sm">
-            تصویر مشارکت واقعی تو در جامعه هم‌بهورز — بر اساس رویدادهای واقعی،
-            بدون رقابت ناسالم.
-          </p>
-        </header>
+        <PageHeader
+          title="داشبورد رشد من"
+          description="تصویر مشارکت واقعی تو در جامعه هم‌بهورز — بر اساس رویدادهای واقعی، بدون رقابت ناسالم."
+          icon="chart"
+        />
 
         <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           {statItems.map((item) => (
@@ -93,7 +91,7 @@ export default async function GrowthPage() {
           </h2>
           {dashboard.badges.length === 0 ? (
             <EmptyState
-              icon={<span aria-hidden="true">🏅</span>}
+              icon={<Icon name="star" className="size-6" />}
               title="هنوز نشانی ندارید"
               description="با ثبت تجربه، حل مسئله، پاسخ مفید و عضویت در حلقه، نشان‌ها به‌دست می‌آیند."
               action={

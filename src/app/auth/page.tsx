@@ -16,18 +16,24 @@ export default async function AuthPage() {
 
   return (
     <main className="bg-muted/40 flex min-h-dvh items-center justify-center px-4 py-10">
-      <div className="border-border bg-background shadow-card w-full max-w-md rounded-2xl border p-6">
-        <div className="mb-6 flex flex-col items-center gap-3 text-center">
-          <Logo href="/" />
-          <p className="text-muted-foreground max-w-xs text-sm">
-            با شماره موبایل وارد شوید یا عضو جدید {siteConfig.name} شوید. کد
-            تأیید پیامک می‌شود.
+      <div className="border-border bg-background shadow-md relative w-full max-w-md overflow-hidden rounded-2xl border">
+        <div
+          aria-hidden="true"
+          className="from-brand-600 to-brand-400 h-1.5 bg-gradient-to-l"
+        />
+        <div className="p-6">
+          <div className="mb-6 flex flex-col items-center gap-3 text-center">
+            <Logo href="/" />
+            <p className="text-muted-foreground max-w-xs text-sm leading-6">
+              با شماره موبایل وارد شوید یا عضو جدید {siteConfig.name} شوید. کد
+              تأیید پیامک می‌شود.
+            </p>
+          </div>
+          <OtpForm />
+          <p className="text-muted-foreground mt-6 text-center text-xs leading-5">
+            ورود شما به‌معنای پذیرش قواعد حریم خصوصی و کد رفتار جامعه است.
           </p>
         </div>
-        <OtpForm />
-        <p className="text-muted-foreground mt-6 text-center text-xs">
-          ورود شما به‌معنای پذیرش قواعد حریم خصوصی و کد رفتار جامعه است.
-        </p>
       </div>
     </main>
   );

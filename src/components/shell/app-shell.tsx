@@ -38,7 +38,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
         <div className="flex min-h-dvh flex-col">
           <AppHeader />
           <AccountStatusBanner />
-          <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 pb-44 lg:pb-10">
+          <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 pb-44 lg:pb-10">
             {children}
           </main>
           <MobileNav />

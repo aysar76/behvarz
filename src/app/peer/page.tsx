@@ -4,6 +4,7 @@ import { AppShell } from "@/components/shell/app-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
+import { PageHeader } from "@/components/ui/page-header";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { formatRelativeTime } from "@/lib/dates";
@@ -115,21 +116,16 @@ export default async function PeerPage() {
   return (
     <AppShell>
       <div className="space-y-6">
-        <header className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h1 className="text-foreground text-2xl font-extrabold">
-              همیاری
-            </h1>
-            <p className="text-muted-foreground mt-1 text-sm">
-              وقتی مسئله‌ای دارید، همیاری با تجربه مشابه پیدا کنید؛ یا خودتان
-              برای درخواست‌های باز، پیشنهاد همیاری بدهید. گفت‌وگوها محدود و
-              موضوع‌محور است.
-            </p>
-          </div>
-          <Link href="/peer/new">
-            <Button>درخواست همیار</Button>
-          </Link>
-        </header>
+        <PageHeader
+          title="همیاری"
+          description="وقتی مسئله‌ای دارید، همیار با تجربه مشابه پیدا کنید؛ یا خودتان برای درخواست‌های باز، پیشنهاد همیاری بدهید. گفت‌وگوها محدود و موضوع‌محور است."
+          icon="handshake"
+          actions={
+            <Link href="/peer/new">
+              <Button>درخواست همیار</Button>
+            </Link>
+          }
+        />
 
         {myActiveCooperations.length > 0 && (
           <section>
@@ -140,7 +136,7 @@ export default async function PeerPage() {
               {myActiveCooperations.map((cooperation) => (
                 <article
                   key={cooperation.id}
-                  className="border-border bg-card shadow-card rounded-xl border p-4"
+                  className="border-border bg-card shadow-card hover:shadow-md hover:border-brand-200 rounded-xl border p-4 transition-all duration-200"
                 >
                   <div className="flex flex-wrap items-center gap-2">
                     <Badge tone="brand">در جریان</Badge>
@@ -176,7 +172,7 @@ export default async function PeerPage() {
               {myRequests.map((request) => (
                 <article
                   key={request.id}
-                  className="border-border bg-card shadow-card rounded-xl border p-4"
+                  className="border-border bg-card shadow-card hover:shadow-md hover:border-brand-200 rounded-xl border p-4 transition-all duration-200"
                 >
                   <div className="flex flex-wrap items-center gap-2">
                     <Badge
@@ -263,7 +259,7 @@ export default async function PeerPage() {
               {openRequests.map((request) => (
                 <article
                   key={request.id}
-                  className="border-border bg-card shadow-card rounded-xl border p-4"
+                  className="border-border bg-card shadow-card hover:shadow-md hover:border-brand-200 rounded-xl border p-4 transition-all duration-200"
                 >
                   <div className="flex flex-wrap items-center gap-2">
                     <Badge tone="info">در انتظار همیار</Badge>

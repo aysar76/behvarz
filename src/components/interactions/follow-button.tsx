@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
 import { useToast } from "@/components/ui/toast";
 
 export interface FollowButtonProps {
@@ -64,6 +65,7 @@ export function FollowButton({
       loading={busy}
       onClick={() => void toggle()}
     >
+      <Icon name={isFollowing ? "check" : "feed"} className="size-3.5" />
       {isFollowing ? "در حال دنبال‌کردن" : (label ?? "دنبال‌کردن")}
     </Button>
   );

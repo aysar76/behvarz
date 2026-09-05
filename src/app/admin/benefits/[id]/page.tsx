@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
+import { Icon } from "@/components/ui/icon";
 import { BenefitProviderForm } from "@/components/admin/benefit-provider-form";
 import { toPersianDigits } from "@/lib/dates";
 
@@ -37,12 +38,13 @@ export default async function AdminBenefitProviderPage({
       <header>
         <Link
           href="/admin/benefits"
-          className="text-brand-700 hover:text-brand-800 text-sm font-medium"
+          className="text-brand-700 hover:text-brand-800 inline-flex items-center gap-1 text-sm font-medium"
         >
-          ← مدیریت باشگاه مزایا
+          <Icon name="arrow-right" className="size-4" />
+          مدیریت باشگاه مزایا
         </Link>
         <h1 className="text-foreground mt-1 text-2xl font-extrabold">
-          {provider.logoEmoji ?? ""} {provider.name}
+          {provider.name}
         </h1>
         <p className="text-muted-foreground mt-1 text-sm">
           {toPersianDigits(provider._count?.usages ?? 0)} استفاده •{" "}

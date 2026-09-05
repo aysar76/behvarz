@@ -19,7 +19,7 @@ export function Logo({ className, href = "/" }: LogoProps) {
     >
       <span
         aria-hidden="true"
-        className="bg-primary text-primary-foreground shadow-card flex size-9 shrink-0 items-center justify-center rounded-xl text-base font-bold"
+        className="from-brand-600 to-brand-400 bg-gradient-to-br text-primary-foreground shadow-md flex size-9 shrink-0 items-center justify-center rounded-xl"
       >
         <svg
           viewBox="0 0 24 24"

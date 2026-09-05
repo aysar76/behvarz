@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { AppShell } from "@/components/shell/app-shell";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
+import { PageHeader } from "@/components/ui/page-header";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { getBarrierMapReport, getDataContributionStatus } from "@/lib/insights";
 import { DataContributionToggle } from "@/components/insights/data-contribution-toggle";
@@ -37,15 +38,11 @@ export default async function InsightsPage() {
   return (
     <AppShell>
       <div className="space-y-8">
-        <header>
-          <h1 className="text-foreground text-2xl font-extrabold">
-            نقشه موانع تجمیعی
-          </h1>
-          <p className="text-muted-foreground mt-1 text-sm">
-            تصویر تجمیعی و کاملاً ناشناس از نوع موانعی که بهورزان در میدان با آن
-            روبه‌رو هستند — دارایی دانشی جامعه، با رضایت و حکمرانی داده.
-          </p>
-        </header>
+        <PageHeader
+          title="نقشه موانع تجمیعی"
+          description="تصویر تجمیعی و کاملاً ناشناس از نوع موانعی که بهورزان در میدان با آن روبه‌رو هستند — دارایی دانشی جامعه، با رضایت و حکمرانی داده."
+          icon="map-pin"
+        />
 
         <section className="border-brand-200 bg-brand-50/60 border-brand-300 rounded-xl border p-4">
           <h2 className="text-brand-800 text-sm font-bold">

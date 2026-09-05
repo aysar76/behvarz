@@ -2,6 +2,7 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
 import { ThanksButton } from "@/components/interactions/thanks-button";
 import { formatRelativeTime } from "@/lib/dates";
 import { cn } from "@/lib/utils";
@@ -44,22 +45,29 @@ export function AnswerItem({
   return (
     <article
       className={cn(
-        "border-border bg-card rounded-xl border p-4",
-        answer.isSelectedSolution && "border-brand-400 bg-brand-50/60",
+        "border-border bg-card rounded-xl border p-4 transition-all duration-200",
+        answer.isSelectedSolution &&
+          "border-brand-400 bg-brand-50/60 shadow-md ring-1 ring-brand-200",
       )}
     >
       {answer.isSelectedSolution && (
         <div className="mb-2">
-          <Badge tone="success">راهکار انتخاب‌شده</Badge>
+          <Badge tone="success">
+            <Icon name="check-circle" className="size-3" />
+            راهکار انتخاب‌شده
+          </Badge>
         </div>
       )}
 
-      <div className="text-muted-foreground flex flex-wrap items-center gap-2 text-xs">
-        <span className="text-foreground text-sm font-semibold">
+      <div className="text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+        <span className="text-foreground inline-flex items-center gap-1.5 text-sm font-semibold">
+          <Icon name="user" className="size-4" />
           {answer.author.displayName ?? "بی‌نام"}
         </span>
-        <span aria-hidden="true">•</span>
-        <span>{formatRelativeTime(answer.createdAt)}</span>
+        <span className="inline-flex items-center gap-1.5">
+          <Icon name="clock" className="size-3.5" />
+          {formatRelativeTime(answer.createdAt)}
+        </span>
         {answer.isClarificationRequest && (
           <Badge tone="info">درخواست توضیح</Badge>
         )}
@@ -71,7 +79,8 @@ export function AnswerItem({
 
       {answer.references.length > 0 && (
         <div className="bg-brand-50 border-brand-200 mt-3 rounded-lg border p-3">
-          <p className="text-brand-800 text-xs font-bold">
+          <p className="text-brand-800 inline-flex items-center gap-1.5 text-xs font-bold">
+            <Icon name="link" className="size-3.5" />
             تجربه‌های ارجاع‌شده
           </p>
           <ul className="mt-1.5 space-y-1">
@@ -96,6 +105,7 @@ export function AnswerItem({
           disabled={busy}
           onClick={() => onHelpfulToggle(answer.id)}
         >
+          <Icon name="thumbs-up" className="size-3.5" />
           {answer.helpfulCount > 0
             ? `مفید بود (${answer.helpfulCount})`
             : "مفید بود"}

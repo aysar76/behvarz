@@ -9,6 +9,7 @@ import { Modal } from "@/components/ui/modal";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/toast";
+import { Icon } from "@/components/ui/icon";
 import { ProblemForm } from "@/components/problems/problem-form";
 import { AnswerItem } from "@/components/problems/answer-item";
 import { AnswerForm } from "@/components/problems/answer-form";
@@ -285,7 +286,7 @@ export function ProblemDetail({
 
   return (
     <div className="space-y-6">
-      <article className="border-border bg-card shadow-card rounded-xl border p-5">
+      <article className="border-border bg-card shadow-card rounded-2xl border p-5">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex flex-wrap items-center gap-2">
             <Badge tone={statusTone}>
@@ -324,14 +325,15 @@ export function ProblemDetail({
           {problem.title}
         </h1>
 
-        <div className="text-muted-foreground mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
-          <span className="text-foreground text-sm font-semibold">
+        <div className="text-muted-foreground mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs">
+          <span className="text-foreground inline-flex items-center gap-1.5 text-sm font-semibold">
+            <Icon name="user" className="size-4" />
             {problem.isAnonymous ? (
               "ناشناس"
             ) : problem.author ? (
               <Link
                 href={`/users/${problem.author.id}`}
-                className="hover:text-brand-700"
+                className="hover:text-brand-700 transition-colors"
               >
                 {problem.author.displayName ?? "بی‌نام"}
               </Link>
@@ -340,15 +342,19 @@ export function ProblemDetail({
             )}
           </span>
           {!problem.isAnonymous && problem.author?.province && (
-            <>
-              <span aria-hidden="true">•</span>
-              <span>{problem.author.province}</span>
-            </>
+            <span className="inline-flex items-center gap-1.5">
+              <Icon name="map-pin" className="size-3.5" />
+              {problem.author.province}
+            </span>
           )}
-          <span aria-hidden="true">•</span>
-          <span>{formatRelativeTime(problem.createdAt)}</span>
-          <span aria-hidden="true">•</span>
-          <span>{PROBLEM_BARRIER_LABELS[problem.barrierType]}</span>
+          <span className="inline-flex items-center gap-1.5">
+            <Icon name="clock" className="size-3.5" />
+            {formatRelativeTime(problem.createdAt)}
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <Icon name="target" className="size-3.5" />
+            {PROBLEM_BARRIER_LABELS[problem.barrierType]}
+          </span>
         </div>
 
         {problem.tags.length > 0 && (
@@ -557,14 +563,21 @@ export function ProblemDetail({
             {problem.statusHistory.map((change) => (
               <li
                 key={change.id}
-                className="border-border text-muted-foreground rounded-lg border px-3 py-2 text-sm"
+                className="border-border text-muted-foreground flex items-center gap-2 rounded-lg border px-3 py-2 text-sm"
               >
-                {change.from ? `${PROBLEM_STATUS_LABELS[change.from]} ← ` : ""}
-                {PROBLEM_STATUS_LABELS[change.to]} —{" "}
-                {formatRelativeTime(change.createdAt)}
-                {change.note && (
-                  <span className="block text-xs"> {change.note}</span>
-                )}
+                <span className="bg-muted text-muted-foreground flex size-6 shrink-0 items-center justify-center rounded-full">
+                  <Icon name="clock" className="size-3.5" />
+                </span>
+                <span>
+                  {change.from ? `${PROBLEM_STATUS_LABELS[change.from]} ` : ""}
+                  <Icon name="arrow-left" className="inline size-3.5" />
+                  {" "}
+                  {PROBLEM_STATUS_LABELS[change.to]} —{" "}
+                  {formatRelativeTime(change.createdAt)}
+                  {change.note && (
+                    <span className="block text-xs"> {change.note}</span>
+                  )}
+                </span>
               </li>
             ))}
           </ol>
@@ -580,14 +593,14 @@ export function ProblemDetail({
             {related.map((item) => (
               <article
                 key={item.id}
-                className="border-border bg-card shadow-card rounded-xl border p-4"
+                className="border-border bg-card shadow-card hover:shadow-md hover:border-brand-200 rounded-xl border p-4 transition-all duration-200"
               >
-                <a
+                <Link
                   href={`/problems/${item.id}`}
-                  className="text-foreground hover:text-brand-700 text-sm font-bold"
+                  className="text-foreground hover:text-brand-700 block text-sm font-bold transition-colors"
                 >
                   {item.title}
-                </a>
+                </Link>
                 <p className="text-muted-foreground mt-1 text-xs">
                   {PROBLEM_STATUS_LABELS[item.status]} • {item.answerCount} پاسخ
                 </p>

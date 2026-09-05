@@ -2,11 +2,11 @@ import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { AppShell } from "@/components/shell/app-shell";
 import { Badge } from "@/components/ui/badge";
+import { Icon } from "@/components/ui/icon";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { getApprovedProvider } from "@/lib/benefits";
 import {
   BENEFIT_PROVIDER_CATEGORY_LABELS,
-  BENEFIT_PROVIDER_CATEGORY_EMOJIS,
   BENEFIT_SATISFACTION_LABELS,
 } from "@/lib/constants/benefits";
 import { toPersianDigits } from "@/lib/dates";
@@ -38,16 +38,17 @@ export default async function BenefitProviderPage({
         <header>
           <Link
             href="/benefits"
-            className="text-brand-700 hover:text-brand-800 text-sm font-medium"
+            className="text-brand-700 hover:text-brand-800 inline-flex items-center gap-1 text-sm font-medium transition-colors"
           >
-            ← باشگاه مزایا
+            <Icon name="arrow-right" className="size-4" />
+            باشگاه مزایا
           </Link>
           <div className="mt-2 flex items-start gap-3">
             <span
               aria-hidden="true"
-              className="bg-brand-100 text-brand-800 flex size-14 items-center justify-center rounded-xl text-3xl"
+              className="from-brand-50 to-brand-100/70 bg-gradient-to-br border-brand-100 flex size-14 shrink-0 items-center justify-center rounded-2xl border text-3xl shadow-sm"
             >
-              {provider.logoEmoji ?? BENEFIT_PROVIDER_CATEGORY_EMOJIS[provider.category]}
+              {provider.logoEmoji ?? "🎁"}
             </span>
             <div>
               <div className="flex flex-wrap items-center gap-2">

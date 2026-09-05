@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Icon } from "@/components/ui/icon";
 import { ExperienceCard } from "@/components/experiences/experience-card";
 import { EXPERIENCE_TAGS } from "@/lib/constants/experience";
 import { cn } from "@/lib/utils";
@@ -192,7 +193,7 @@ export function ExperienceList() {
 
       {!error && experiences !== null && experiences.length === 0 && (
         <EmptyState
-          icon={<span aria-hidden="true">📚</span>}
+          icon={<Icon name="book" className="size-6" />}
           title={drafts ? "پیش‌نویسی ندارید" : "هنوز تجربه‌ای ثبت نشده"}
           description={
             drafts

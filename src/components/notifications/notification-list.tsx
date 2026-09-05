@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Icon } from "@/components/ui/icon";
 import { formatRelativeTime } from "@/lib/dates";
 import { NOTIFICATION_TYPE_LABELS } from "@/lib/constants/notification";
 import type { NotificationType } from "@/generated/prisma/client";
@@ -141,7 +142,7 @@ export function NotificationList() {
   if (notifications !== null && notifications.length === 0) {
     return (
       <EmptyState
-        icon={<span aria-hidden="true">🔔</span>}
+        icon={<Icon name="bell" className="size-6" />}
         title="اعلانی ندارید"
         description="وقتی کسی به مسئله شما پاسخ دهد، راهکارتان انتخاب شود یا شما را به حلقه دعوت کنند، اعلان می‌گیرید."
       />

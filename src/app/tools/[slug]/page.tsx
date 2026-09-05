@@ -2,9 +2,10 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { AppShell } from "@/components/shell/app-shell";
 import { Badge } from "@/components/ui/badge";
+import { Icon } from "@/components/ui/icon";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { getPublishedToolBySlug } from "@/lib/tools";
-import { TOOL_KIND_EMOJIS, TOOL_KIND_LABELS } from "@/lib/constants/tool";
+import { TOOL_KIND_LABELS } from "@/lib/constants/tool";
 import { formatRelativeTime } from "@/lib/dates";
 
 export const metadata = {
@@ -27,16 +28,15 @@ export default async function ToolDetailPage({
       <div className="mx-auto max-w-3xl space-y-6">
         <Link
           href="/tools"
-          className="text-muted-foreground hover:text-foreground text-sm"
+          className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-sm transition-colors"
         >
-          ← بازگشت به ابزارها
+          <Icon name="arrow-right" className="size-4" />
+          بازگشت به ابزارها
         </Link>
 
-        <article className="border-border bg-card shadow-card rounded-xl border p-5 sm:p-7">
+        <article className="border-border bg-card shadow-card rounded-2xl border p-5 sm:p-7">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-foreground text-2xl" aria-hidden="true">
-              {TOOL_KIND_EMOJIS[tool.kind]}
-            </span>
+            <Badge tone="brand">{TOOL_KIND_LABELS[tool.kind]}</Badge>
             <Badge tone="neutral">{TOOL_KIND_LABELS[tool.kind]}</Badge>
             <Badge tone="brand">نسخه {tool.version}</Badge>
           </div>

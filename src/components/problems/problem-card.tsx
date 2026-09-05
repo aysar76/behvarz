@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { Icon } from "@/components/ui/icon";
 import { formatRelativeTime } from "@/lib/dates";
 import {
   PROBLEM_BARRIER_LABELS,
@@ -24,7 +25,7 @@ export function ProblemCard({ problem }: { problem: SerializedProblem }) {
         : ("brand" as const);
 
   return (
-    <article className="border-border bg-card shadow-card rounded-xl border p-4">
+    <article className="border-border bg-card shadow-card hover:shadow-md hover:border-brand-200 group rounded-xl border p-4 transition-all duration-200">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <Link
           href={`/problems/${problem.id}`}
@@ -33,9 +34,7 @@ export function ProblemCard({ problem }: { problem: SerializedProblem }) {
           {problem.title}
         </Link>
         <div className="flex flex-wrap gap-1.5">
-          <Badge tone={statusTone}>
-            {PROBLEM_STATUS_LABELS[problem.status]}
-          </Badge>
+          <Badge tone={statusTone}>{PROBLEM_STATUS_LABELS[problem.status]}</Badge>
           <Badge tone={urgencyTone}>
             فوریت: {PROBLEM_URGENCY_LABELS[problem.urgency]}
           </Badge>
@@ -46,22 +45,29 @@ export function ProblemCard({ problem }: { problem: SerializedProblem }) {
         {problem.description}
       </p>
 
-      <div className="text-muted-foreground mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
-        <span>
+      <div className="text-muted-foreground mt-3.5 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs">
+        <span className="inline-flex items-center gap-1.5">
+          <Icon name="user" className="size-3.5" />
           {problem.isAnonymous
             ? "ناشناس"
             : (problem.author?.displayName ?? "بی‌نام")}
         </span>
-        <span aria-hidden="true">•</span>
-        <span>{formatRelativeTime(problem.createdAt)}</span>
-        <span aria-hidden="true">•</span>
-        <span>{PROBLEM_BARRIER_LABELS[problem.barrierType]}</span>
-        <span aria-hidden="true">•</span>
-        <span>{problem.answerCount} پاسخ</span>
+        <span className="inline-flex items-center gap-1.5">
+          <Icon name="clock" className="size-3.5" />
+          {formatRelativeTime(problem.createdAt)}
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <Icon name="target" className="size-3.5" />
+          {PROBLEM_BARRIER_LABELS[problem.barrierType]}
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <Icon name="messages" className="size-3.5" />
+          {problem.answerCount} پاسخ
+        </span>
       </div>
 
       {problem.tags.length > 0 && (
-        <div className="mt-3 flex flex-wrap gap-1.5">
+        <div className="mt-3.5 flex flex-wrap gap-1.5">
           {problem.tags.slice(0, 4).map((tag) => (
             <Badge key={tag} tone="neutral">
               {tag}

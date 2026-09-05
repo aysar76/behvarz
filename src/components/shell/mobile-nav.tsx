@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { mainNav } from "@/config/site";
+import { mobileNav } from "@/config/site";
 import { cn } from "@/lib/utils";
+import { Icon } from "@/components/ui/icon";
 
 export function MobileNav() {
   const pathname = usePathname();
@@ -11,37 +12,39 @@ export function MobileNav() {
   return (
     <nav
       aria-label="ناوبری موبایل"
-      className="border-border bg-background/95 fixed inset-x-0 bottom-0 z-40 border-t backdrop-blur lg:hidden"
+      className="border-border bg-background/95 supports-[backdrop-filter]:bg-background/80 fixed inset-x-0 bottom-0 z-40 border-t backdrop-blur-xl lg:hidden"
     >
-      <div className="grid grid-cols-4">
-        {mainNav.map((item) => {
+      <div className="mx-auto grid max-w-lg grid-cols-5 pb-[env(safe-area-inset-bottom)]">
+        {mobileNav.map((item) => {
           const active = item.href === pathname;
-          if (item.disabled) {
-            return (
-              <span
-                key={item.href}
-                aria-disabled="true"
-                className="text-muted-foreground/40 flex cursor-not-allowed flex-col items-center gap-1 py-2.5 text-[11px] font-medium"
-              >
-                <span className="text-lg leading-none">•</span>
-                {item.label}
-              </span>
-            );
-          }
           return (
             <Link
               key={item.href}
               href={item.href}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium",
-                active
-                  ? "text-primary"
-                  : "text-muted-foreground hover:text-foreground",
+                "relative flex flex-col items-center gap-1 py-2.5 text-[10.5px] font-medium transition-colors",
+                active ? "text-brand-700" : "text-muted-foreground hover:text-foreground",
               )}
             >
-              <span className="text-lg leading-none">•</span>
+              <span
+                className={cn(
+                  "flex h-7 w-11 items-center justify-center rounded-full transition-colors",
+                  active && "bg-brand-50",
+                )}
+              >
+                <Icon
+                  name={item.icon}
+                  className={cn("size-[20px]", active && "text-brand-700")}
+                />
+              </span>
               {item.label}
+              {active && (
+                <span
+                  aria-hidden="true"
+                  className="bg-primary absolute top-0 h-0.5 w-8 rounded-full"
+                />
+              )}
             </Link>
           );
         })}

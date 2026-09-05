@@ -7,6 +7,7 @@ import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Icon } from "@/components/ui/icon";
 import { formatRelativeTime } from "@/lib/dates";
 import { PROVINCES } from "@/lib/constants/profile";
 import { PROBLEM_TAGS } from "@/lib/constants/problem";
@@ -268,7 +269,7 @@ export function SearchExplorer() {
 
       {!loading && searched && data && !data.hasResults && (
         <EmptyState
-          icon={<span aria-hidden="true">🔎</span>}
+          icon={<Icon name="search" className="size-6" />}
           title="نتیجه‌ای یافت نشد"
           description={
             query

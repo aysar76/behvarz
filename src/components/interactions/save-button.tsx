@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
 import { useToast } from "@/components/ui/toast";
 
 export interface SaveButtonProps {
@@ -60,6 +61,7 @@ export function SaveButton({
       loading={busy}
       onClick={() => void toggle()}
     >
+      <Icon name="bookmark" className="size-3.5" />
       {isSaved ? "ذخیره شد" : "ذخیره"}
     </Button>
   );

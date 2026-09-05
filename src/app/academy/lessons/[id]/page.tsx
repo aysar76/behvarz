@@ -2,6 +2,7 @@ import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { AppShell } from "@/components/shell/app-shell";
 import { Badge } from "@/components/ui/badge";
+import { Icon } from "@/components/ui/icon";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { getLessonForLearning } from "@/lib/academy";
 import { LessonLearner } from "@/components/academy/lesson-learner";
@@ -35,9 +36,10 @@ export default async function LessonPage({
         <div className="flex items-center justify-between gap-3">
           <Link
             href={`/academy/${course.slug}`}
-            className="text-brand-700 hover:text-brand-800 text-sm font-medium"
+            className="text-brand-700 hover:text-brand-800 inline-flex items-center gap-1 text-sm font-medium transition-colors"
           >
-            ← بازگشت به دوره
+            <Icon name="arrow-right" className="size-4" />
+            بازگشت به دوره
           </Link>
           <Badge tone="neutral">{LESSON_CONTENT_TYPE_LABELS[lesson.contentType]}</Badge>
         </div>

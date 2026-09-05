@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "@/components/auth/session-provider";
 import { cn } from "@/lib/utils";
+import { Icon } from "@/components/ui/icon";
 
 export function NotificationBell() {
   const { user } = useSession();
@@ -36,13 +37,13 @@ export function NotificationBell() {
       aria-label="اعلان‌ها"
       title="اعلان‌ها"
       className={cn(
-        "text-muted-foreground hover:bg-muted hover:text-foreground relative flex size-10 items-center justify-center rounded-md text-lg transition-colors",
-        isActive && "text-foreground bg-muted",
+        "text-muted-foreground hover:bg-muted hover:text-foreground relative flex size-10 items-center justify-center rounded-lg transition-colors",
+        isActive && "bg-brand-50 text-brand-800",
       )}
     >
-      <span aria-hidden="true">🔔</span>
+      <Icon name="bell" className="size-[18px]" />
       {unread !== null && unread > 0 && (
-        <span className="bg-destructive text-destructive-foreground absolute -end-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-bold">
+        <span className="bg-destructive text-destructive-foreground absolute -end-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-bold ring-2 ring-background">
           {unread > 9 ? "۹+" : unread}
         </span>
       )}

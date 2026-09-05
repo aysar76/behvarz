@@ -9,7 +9,6 @@ import {
 } from "@/lib/benefits";
 import {
   BENEFIT_PROVIDER_CATEGORY_LABELS,
-  BENEFIT_PROVIDER_CATEGORY_EMOJIS,
   BENEFIT_PROVIDER_STATUS_LABELS,
   BENEFIT_PROVIDER_STATUS_TONES,
 } from "@/lib/constants/benefits";
@@ -96,7 +95,6 @@ export default async function AdminBenefitsPage() {
                         href={`/admin/benefits/${provider.id}`}
                         className="text-foreground hover:text-brand-700 font-semibold"
                       >
-                        {provider.logoEmoji ?? BENEFIT_PROVIDER_CATEGORY_EMOJIS[provider.category]}{" "}
                         {provider.name}
                       </Link>
                     </td>

@@ -194,7 +194,7 @@ export function BenefitProviderForm({
             onChange={(event) => set("logoEmoji", event.target.value)}
             maxLength={8}
             className="border-input bg-background focus-visible:outline-ring w-full rounded-md border px-3 py-2 text-sm focus-visible:outline-2"
-            placeholder="🏥"
+            placeholder="مثلاً 🏥"
           />
         </div>
       </div>

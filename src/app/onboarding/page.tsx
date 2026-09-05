@@ -14,18 +14,24 @@ export default async function OnboardingPage() {
 
   return (
     <main className="bg-muted/40 flex min-h-dvh items-start justify-center px-4 py-10">
-      <div className="border-border bg-background shadow-card w-full max-w-xl rounded-2xl border p-6">
-        <div className="mb-6 flex items-center gap-3">
-          <Logo href="/" />
+      <div className="border-border bg-background shadow-md relative w-full max-w-xl overflow-hidden rounded-2xl border">
+        <div
+          aria-hidden="true"
+          className="from-brand-600 to-brand-400 h-1.5 bg-gradient-to-l"
+        />
+        <div className="p-6">
+          <div className="mb-6 flex items-center gap-3">
+            <Logo href="/" />
+          </div>
+          <h1 className="text-foreground text-xl font-extrabold">
+            خوش آمدید؛ پروفایل حرفه‌ای شما
+          </h1>
+          <p className="text-muted-foreground mt-1 mb-5 text-sm leading-6">
+            چند قدم کوتاه تا عضویت کامل در جامعه. این اطلاعات برای اتصال شما به
+            همکاران مرتبط استفاده می‌شود.
+          </p>
+          <OnboardingForm />
         </div>
-        <h1 className="text-foreground text-xl font-extrabold">
-          خوش آمدید؛ پروفایل حرفه‌ای شما
-        </h1>
-        <p className="text-muted-foreground mt-1 mb-5 text-sm">
-          چند قدم کوتاه تا عضویت کامل در جامعه. این اطلاعات برای اتصال شما به
-          همکاران مرتبط استفاده می‌شود.
-        </p>
-        <OnboardingForm />
       </div>
     </main>
   );

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
+import { Icon } from "@/components/ui/icon";
 import { ExperienceForm } from "@/components/experiences/experience-form";
 import { ReuseForm } from "@/components/experiences/reuse-form";
 import { ReportDialog } from "@/components/problems/report-dialog";
@@ -136,7 +137,7 @@ export function ExperienceDetail({
 
   return (
     <div className="space-y-6">
-      <article className="border-border bg-card shadow-card rounded-xl border p-5">
+      <article className="border-border bg-card shadow-card rounded-2xl border p-5">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex flex-wrap items-center gap-2">
             <Badge tone={experienceStatusTone(experience.status)}>
@@ -176,25 +177,33 @@ export function ExperienceDetail({
           {experience.title}
         </h1>
 
-        <div className="text-muted-foreground mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+        <div className="text-muted-foreground mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs">
           {experience.author ? (
-            <Link
-              href={`/users/${experience.author.id}`}
-              className="text-foreground hover:text-brand-700 text-sm font-semibold"
-            >
-              {experience.author.displayName ?? "بی‌نام"}
-            </Link>
+            <span className="text-foreground inline-flex items-center gap-1.5 text-sm font-semibold">
+              <Icon name="user" className="size-4" />
+              <Link
+                href={`/users/${experience.author.id}`}
+                className="hover:text-brand-700 transition-colors"
+              >
+                {experience.author.displayName ?? "بی‌نام"}
+              </Link>
+            </span>
           ) : (
-            <span className="text-foreground text-sm font-semibold">بی‌نام</span>
+            <span className="text-foreground inline-flex items-center gap-1.5 text-sm font-semibold">
+              <Icon name="user" className="size-4" />
+              بی‌نام
+            </span>
           )}
           {experience.author?.province && (
-            <>
-              <span aria-hidden="true">•</span>
-              <span>{experience.author.province}</span>
-            </>
+            <span className="inline-flex items-center gap-1.5">
+              <Icon name="map-pin" className="size-3.5" />
+              {experience.author.province}
+            </span>
           )}
-          <span aria-hidden="true">•</span>
-          <span>{formatRelativeTime(experience.createdAt)}</span>
+          <span className="inline-flex items-center gap-1.5">
+            <Icon name="clock" className="size-3.5" />
+            {formatRelativeTime(experience.createdAt)}
+          </span>
         </div>
 
         {experience.tags.length > 0 && (
@@ -266,25 +275,28 @@ export function ExperienceDetail({
         )}
 
         {!experience.isDraft && (
-          <section className="mt-5 grid gap-4 sm:grid-cols-3">
-            <div className="border-border rounded-lg border p-3 text-center">
-              <div className="text-foreground text-2xl font-extrabold">
+          <section className="mt-5 grid gap-3 sm:grid-cols-3">
+            <div className="border-border bg-muted/30 rounded-xl border p-3 text-center">
+              <div className="text-foreground inline-flex items-center gap-1.5 text-2xl font-extrabold">
+                <Icon name="link" className="size-5 text-brand-600" />
                 {experience.referenceCount}
               </div>
               <div className="text-muted-foreground mt-1 text-xs">
                 ارجاع در مسائل واقعی
               </div>
             </div>
-            <div className="border-border rounded-lg border p-3 text-center">
-              <div className="text-foreground text-2xl font-extrabold">
+            <div className="border-border bg-muted/30 rounded-xl border p-3 text-center">
+              <div className="text-foreground inline-flex items-center gap-1.5 text-2xl font-extrabold">
+                <Icon name="check-circle" className="size-5 text-brand-600" />
                 {experience.reuseCount}
               </div>
               <div className="text-muted-foreground mt-1 text-xs">
                 اجرای ثبت‌شده
               </div>
             </div>
-            <div className="border-border rounded-lg border p-3 text-center">
-              <div className="text-foreground text-2xl font-extrabold">
+            <div className="border-border bg-muted/30 rounded-xl border p-3 text-center">
+              <div className="text-foreground inline-flex items-center gap-1.5 text-2xl font-extrabold">
+                <Icon name="star" className="size-5 text-brand-600" />
                 {experience.reuseSuccessCount}
               </div>
               <div className="text-muted-foreground mt-1 text-xs">
@@ -430,14 +442,17 @@ export function ExperienceDetail({
             {experience.reuses.map((reuse) => (
               <article
                 key={reuse.id}
-                className="border-border bg-card shadow-card rounded-xl border p-4"
+                className="border-border bg-card shadow-card hover:shadow-md rounded-xl border p-4 transition-all duration-200"
               >
-                <div className="text-muted-foreground flex flex-wrap items-center gap-2 text-xs">
-                  <span className="text-foreground text-sm font-semibold">
+                <div className="text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+                  <span className="text-foreground inline-flex items-center gap-1.5 text-sm font-semibold">
+                    <Icon name="user" className="size-4" />
                     {reuse.user.displayName ?? "بی‌نام"}
                   </span>
-                  <span aria-hidden="true">•</span>
-                  <span>{formatRelativeTime(reuse.createdAt)}</span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <Icon name="clock" className="size-3.5" />
+                    {formatRelativeTime(reuse.createdAt)}
+                  </span>
                   <Badge
                     tone={
                       reuse.outcome === "successful"
@@ -468,14 +483,14 @@ export function ExperienceDetail({
             {related.map((item) => (
               <article
                 key={item.id}
-                className="border-border bg-card shadow-card rounded-xl border p-4"
+                className="border-border bg-card shadow-card hover:shadow-md hover:border-brand-200 rounded-xl border p-4 transition-all duration-200"
               >
-                <a
+                <Link
                   href={`/experiences/${item.slug}`}
-                  className="text-foreground hover:text-brand-700 text-sm font-bold"
+                  className="text-foreground hover:text-brand-700 block text-sm font-bold transition-colors"
                 >
                   {item.title}
-                </a>
+                </Link>
                 <p className="text-muted-foreground mt-1 text-xs">
                   {EXPERIENCE_STATUS_LABELS[item.status]} • {item.reuseCount}{" "}
                   اجرای ثبت‌شده

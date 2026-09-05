@@ -1,3 +1,5 @@
+import type { IconName } from "@/components/ui/icon";
+
 export const siteConfig = {
   name: "هم‌بهورز",
   tagline: "خانه حرفه‌ای بهورزان",
@@ -7,19 +9,28 @@ export const siteConfig = {
 export type NavItem = {
   label: string;
   href: string;
+  icon: IconName;
   disabled?: boolean;
 };
 
 export const mainNav: NavItem[] = [
-  { label: "خانه", href: "/" },
-  { label: "اتاق مسئله", href: "/problems" },
-  { label: "بانک تجربه", href: "/experiences" },
-  { label: "کشف دانش", href: "/discover" },
-  { label: "حلقه‌های همیار", href: "/circles" },
-  { label: "آکادمی", href: "/academy" },
-  { label: "مزایا", href: "/benefits" },
-  { label: "ابزارها", href: "/tools" },
-  { label: "کمپین‌ها", href: "/campaigns" },
-  { label: "خوراک حرفه‌ای", href: "/feed" },
-  { label: "پروفایل", href: "/me" },
+  { label: "خانه", href: "/", icon: "home" },
+  { label: "اتاق مسئله", href: "/problems", icon: "question" },
+  { label: "بانک تجربه", href: "/experiences", icon: "book" },
+  { label: "کشف دانش", href: "/discover", icon: "compass" },
+  { label: "حلقه‌های همیار", href: "/circles", icon: "users" },
+  { label: "آکادمی", href: "/academy", icon: "graduation" },
+  { label: "مزایا", href: "/benefits", icon: "gift" },
+  { label: "ابزارها", href: "/tools", icon: "wrench" },
+  { label: "کمپین‌ها", href: "/campaigns", icon: "target" },
+  { label: "خوراک حرفه‌ای", href: "/feed", icon: "feed" },
+  { label: "پروفایل", href: "/me", icon: "user" },
+];
+
+export const mobileNav: NavItem[] = [
+  { label: "خانه", href: "/", icon: "home" },
+  { label: "مسئله", href: "/problems", icon: "question" },
+  { label: "کشف", href: "/discover", icon: "compass" },
+  { label: "حلقه‌ها", href: "/circles", icon: "users" },
+  { label: "پروفایل", href: "/me", icon: "user" },
 ];

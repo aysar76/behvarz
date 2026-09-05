@@ -9,6 +9,7 @@ import {
   useState,
 } from "react";
 import { cn } from "@/lib/utils";
+import { Icon, type IconName } from "@/components/ui/icon";
 
 type ToastTone = "info" | "success" | "warning" | "danger";
 
@@ -33,11 +34,18 @@ export function useToast() {
   return context;
 }
 
-const toneIcon: Record<ToastTone, string> = {
-  info: "ℹ",
-  success: "✓",
-  warning: "⚠",
-  danger: "✕",
+const toneIcon: Record<ToastTone, IconName> = {
+  info: "info",
+  success: "check-circle",
+  warning: "alert",
+  danger: "alert",
+};
+
+const toneIconClasses: Record<ToastTone, string> = {
+  info: "text-info",
+  success: "text-brand-700",
+  warning: "text-amber-700",
+  danger: "text-red-700",
 };
 
 const toneClasses: Record<ToastTone, string> = {
@@ -78,12 +86,16 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             key={toast.id}
             role={toast.tone === "danger" ? "alert" : "status"}
             className={cn(
-              "bg-background shadow-popover pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-lg border px-4 py-3",
+              "bg-background shadow-popover pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-xl border px-4 py-3",
+              "animate-[toast-in_0.2s_ease-out]",
               toneClasses[toast.tone],
             )}
           >
-            <span aria-hidden="true" className="mt-0.5 text-sm font-bold">
-              {toneIcon[toast.tone]}
+            <span
+              aria-hidden="true"
+              className={cn("mt-0.5", toneIconClasses[toast.tone])}
+            >
+              <Icon name={toneIcon[toast.tone]} className="size-5" />
             </span>
             <div className="min-w-0 flex-1">
               <p className="text-foreground text-sm font-semibold">
@@ -98,10 +110,10 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             <button
               type="button"
               aria-label="بستن"
-              className="text-muted-foreground hover:text-foreground"
+              className="text-muted-foreground hover:text-foreground rounded-md p-1 transition-colors"
               onClick={() => dismiss(toast.id)}
             >
-              <span aria-hidden="true">✕</span>
+              <Icon name="x" className="size-4" />
             </button>
           </div>
         ))}

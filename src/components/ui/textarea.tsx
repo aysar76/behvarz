@@ -12,12 +12,13 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         ref={ref}
         aria-invalid={invalid || undefined}
         className={cn(
-          "bg-background text-foreground min-h-[96px] w-full rounded-md border px-3 py-2 text-sm",
+          "bg-background text-foreground min-h-[96px] w-full rounded-lg border px-3 py-2 text-sm",
           "placeholder:text-muted-foreground",
-          "transition-colors",
-          "focus-visible:outline-ring focus-visible:outline-2 focus-visible:outline-offset-2",
+          "transition-all duration-150",
+          "hover:border-brand-300",
+          "focus-visible:outline-ring focus-visible:outline-2 focus-visible:outline-offset-1",
           invalid
-            ? "border-destructive focus-visible:outline-destructive"
+            ? "border-destructive hover:border-destructive focus-visible:outline-destructive"
             : "border-input",
           "disabled:cursor-not-allowed disabled:opacity-50",
           className,

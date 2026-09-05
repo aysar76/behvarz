@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Modal } from "@/components/ui/modal";
+import { Icon } from "@/components/ui/icon";
 import { useToast } from "@/components/ui/toast";
 import { formatRelativeTime } from "@/lib/dates";
 import {
@@ -131,7 +132,7 @@ export function BudgetAdmin({
   if (proposals.length === 0) {
     return (
       <EmptyState
-        icon={<span aria-hidden="true">🗳️</span>}
+        icon={<Icon name="coins" className="size-6" />}
         title="پیشنهادی ثبت نشده است"
         description="پیشنهادهای اعضا برای بررسی صلاحیت اینجا ظاهر می‌شوند."
       />
@@ -292,7 +293,7 @@ export function BudgetAdmin({
                     className="text-muted-foreground hover:text-destructive"
                     aria-label="حذف هزینه"
                   >
-                    ✕
+                    <Icon name="x" className="size-4" />
                   </button>
                 </div>
               ))}

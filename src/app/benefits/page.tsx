@@ -4,12 +4,11 @@ import { AppShell } from "@/components/shell/app-shell";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
+import { PageHeader } from "@/components/ui/page-header";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { listApprovedProviders, type SerializedBenefitProvider } from "@/lib/benefits";
-import {
-  BENEFIT_PROVIDER_CATEGORY_LABELS,
-  BENEFIT_PROVIDER_CATEGORY_EMOJIS,
-} from "@/lib/constants/benefits";
+import { BENEFIT_PROVIDER_CATEGORY_LABELS } from "@/lib/constants/benefits";
 import { toPersianDigits } from "@/lib/dates";
 
 export const metadata = {
@@ -21,18 +20,20 @@ function ProviderCard({ provider }: { provider: SerializedBenefitProvider }) {
   return (
     <Link
       href={`/benefits/${provider.id}`}
-      className="border-border bg-card shadow-card hover:border-brand-300 focus-visible:outline-ring flex flex-col gap-3 rounded-xl border p-4 transition-colors focus-visible:outline-2"
+      className="border-border bg-card shadow-card hover:shadow-md hover:border-brand-200 focus-visible:outline-ring group flex flex-col gap-3 rounded-2xl border p-4 transition-all duration-200 focus-visible:outline-2"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
           <span
             aria-hidden="true"
-            className="bg-brand-100 text-brand-800 flex size-12 items-center justify-center rounded-lg text-2xl"
+            className="from-brand-50 to-brand-100/70 bg-gradient-to-br border-brand-100 flex size-12 shrink-0 items-center justify-center rounded-xl border text-2xl"
           >
-            {provider.logoEmoji ?? BENEFIT_PROVIDER_CATEGORY_EMOJIS[provider.category]}
+            {provider.logoEmoji ?? "🎁"}
           </span>
-          <div>
-            <p className="text-foreground font-bold">{provider.name}</p>
+          <div className="min-w-0">
+            <p className="text-foreground truncate font-bold group-hover:text-brand-700 transition-colors">
+              {provider.name}
+            </p>
             <div className="mt-1 flex flex-wrap gap-1">
               <Badge tone="brand">
                 {BENEFIT_PROVIDER_CATEGORY_LABELS[provider.category]}
@@ -43,17 +44,18 @@ function ProviderCard({ provider }: { provider: SerializedBenefitProvider }) {
         </div>
       </div>
 
-      <p className="text-muted-foreground line-clamp-2 text-sm">
+      <p className="text-muted-foreground line-clamp-2 text-sm leading-6">
         {provider.description}
       </p>
 
       <div className="text-muted-foreground mt-auto flex items-center justify-between text-xs">
-        <span>استفاده: {toPersianDigits(provider.usageCount)}</span>
-        <span>
-          رضایت:{" "}
-          {avg !== null
-            ? toPersianDigits(avg.toFixed(1))
-            : "—"}
+        <span className="inline-flex items-center gap-1">
+          <Icon name="users" className="size-3.5" />
+          استفاده: {toPersianDigits(provider.usageCount)}
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <Icon name="star" className="size-3.5" />
+          رضایت: {avg !== null ? toPersianDigits(avg.toFixed(1)) : "—"}
         </span>
       </div>
     </Link>
@@ -69,13 +71,11 @@ export default async function BenefitsPage() {
   return (
     <AppShell>
       <div className="space-y-8">
-        <header>
-          <h1 className="text-foreground text-2xl font-extrabold">باشگاه مزایا</h1>
-          <p className="text-muted-foreground mt-1 text-sm">
-            مزایا و فرصت‌های تأییدشده برای اعضای جامعه بهورزان. تبلیغ و محتوای
-            حرفه‌ای به‌صورت شفاف از هم جدا شده‌اند.
-          </p>
-        </header>
+        <PageHeader
+          title="باشگاه مزایا"
+          description="مزایا و فرصت‌های تأییدشده برای اعضای جامعه بهورزان. تبلیغ و محتوای حرفه‌ای به‌صورت شفاف از هم جدا شده‌اند."
+          icon="gift"
+        />
 
         <section className="bg-brand-50 border-brand-200 rounded-xl border p-4">
           <h2 className="text-brand-800 text-sm font-bold">تفکیک شفاف</h2>
@@ -88,7 +88,7 @@ export default async function BenefitsPage() {
 
         {providers.length === 0 ? (
           <EmptyState
-            icon={<span aria-hidden="true">🎁</span>}
+            icon={<Icon name="gift" className="size-6" />}
             title="هنوز مزیتی ثبت نشده است"
             description="به‌زودی ارائه‌دهندگان تأییدشده برای اعضای شبکه معرفی می‌شوند."
           />

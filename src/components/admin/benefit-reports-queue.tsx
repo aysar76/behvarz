@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Icon } from "@/components/ui/icon";
 import { useToast } from "@/components/ui/toast";
 import { formatRelativeTime } from "@/lib/dates";
 import { BENEFIT_REPORT_STATUS_TONES } from "@/lib/constants/benefits";
@@ -67,7 +68,7 @@ export function BenefitReportsQueue({
   if (reports.length === 0) {
     return (
       <EmptyState
-        icon={<span aria-hidden="true">📋</span>}
+        icon={<Icon name="list" className="size-6" />}
         title="گزارشی در انتظار نیست"
         description="وقتی عضوی از مزیتی گزارش مشکل ثبت کند، اینجا دیده می‌شود."
       />

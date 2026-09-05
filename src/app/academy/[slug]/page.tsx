@@ -4,6 +4,7 @@ import { AppShell } from "@/components/shell/app-shell";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Icon, type IconName } from "@/components/ui/icon";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { getCourseDetail } from "@/lib/academy";
 import { COURSE_LEVEL_LABELS } from "@/lib/constants/academy";
@@ -13,6 +14,18 @@ import { canUser } from "@/lib/auth/authorization";
 
 export const metadata = {
   title: "دوره آکادمی",
+};
+
+const levelIcon: Record<string, IconName> = {
+  beginner: "graduation",
+  intermediate: "book",
+  advanced: "star",
+};
+
+const levelChip: Record<string, string> = {
+  beginner: "from-brand-50 to-brand-100/70 border-brand-100 text-brand-700",
+  intermediate: "from-sky-50 to-sky-100/70 border-sky-100 text-sky-700",
+  advanced: "from-amber-50 to-amber-100/70 border-amber-100 text-amber-700",
 };
 
 export default async function CoursePage({
@@ -49,19 +62,23 @@ export default async function CoursePage({
       <div className="space-y-6">
         <Link
           href="/academy"
-          className="text-brand-700 hover:text-brand-800 text-sm font-medium"
+          className="text-brand-700 hover:text-brand-800 inline-flex items-center gap-1 text-sm font-medium transition-colors"
         >
-          ← بازگشت به آکادمی
+          <Icon name="arrow-right" className="size-4" />
+          بازگشت به آکادمی
         </Link>
 
-        <header className="border-border bg-card shadow-card rounded-xl border p-5">
+        <header className="border-border bg-card shadow-card rounded-2xl border p-5 md:p-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="flex items-start gap-4">
               <span
                 aria-hidden="true"
-                className="bg-brand-100 text-brand-800 flex size-16 shrink-0 items-center justify-center rounded-xl text-4xl"
+                className={`bg-gradient-to-br flex size-16 shrink-0 items-center justify-center rounded-2xl border shadow-sm ${levelChip[course.level] ?? levelChip.beginner}`}
               >
-                {course.emoji ?? "📘"}
+                <Icon
+                  name={levelIcon[course.level] ?? "graduation"}
+                  className="size-8"
+                />
               </span>
               <div>
                 <div className="flex flex-wrap items-center gap-2">
@@ -174,7 +191,7 @@ export default async function CoursePage({
                 const baseClass =
                   "border-border bg-card shadow-card block rounded-xl border p-4" +
                   (course.isEnrolled
-                    ? " hover:border-brand-300 transition-colors"
+                    ? " hover:border-brand-200 hover:shadow-md transition-all duration-200"
                     : " opacity-70");
                 const content = (
                   <>
@@ -182,13 +199,15 @@ export default async function CoursePage({
                       <span
                         className={
                           lesson.progressStatus === "completed"
-                            ? "bg-success text-success-foreground flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-bold"
+                            ? "bg-success text-success-foreground flex size-8 shrink-0 items-center justify-center rounded-full"
                             : "bg-muted text-muted-foreground flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-bold"
                         }
                       >
-                        {lesson.progressStatus === "completed"
-                          ? "✓"
-                          : index + 1}
+                        {lesson.progressStatus === "completed" ? (
+                          <Icon name="check" className="size-4" />
+                        ) : (
+                          index + 1
+                        )}
                       </span>
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2">

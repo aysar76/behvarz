@@ -5,6 +5,7 @@ import { getCommandCenterReport } from "@/lib/command-center";
 import { toPersianDigits } from "@/lib/dates";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
 
 export const metadata = {
   title: "مرکز فرماندهی",
@@ -126,9 +127,10 @@ export default async function CommandCenterPage() {
                 {alert.href && (
                   <Link
                     href={alert.href}
-                    className="text-brand-700 hover:text-brand-800 mt-2 inline-block text-xs font-medium"
+                    className="text-brand-700 hover:text-brand-800 mt-2 inline-flex items-center gap-1 text-xs font-medium"
                   >
-                    مشاهده و پیگیری ←
+                    مشاهده و پیگیری
+                    <Icon name="arrow-left" className="size-3.5" />
                   </Link>
                 )}
               </div>
@@ -226,9 +228,10 @@ export default async function CommandCenterPage() {
                 {item.href && (
                   <Link
                     href={item.href}
-                    className="text-brand-700 hover:text-brand-800 mt-2 inline-block text-xs font-medium"
+                    className="text-brand-700 hover:text-brand-800 mt-2 inline-flex items-center gap-1 text-xs font-medium"
                   >
-                    مشاهده ←
+                    مشاهده
+                    <Icon name="arrow-left" className="size-3.5" />
                   </Link>
                 )}
               </div>

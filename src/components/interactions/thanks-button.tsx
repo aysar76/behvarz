@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
 import { useToast } from "@/components/ui/toast";
 
 export interface ThanksButtonProps {
@@ -69,6 +70,7 @@ export function ThanksButton({
       disabled={disabled}
       onClick={() => void toggle()}
     >
+      <Icon name="heart" className="size-3.5" />
       {count > 0 ? `تشکر حرفه‌ای (${count})` : "تشکر حرفه‌ای"}
     </Button>
   );

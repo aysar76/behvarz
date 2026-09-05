@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
+import { Icon } from "@/components/ui/icon";
 import { AdminLessonQuizManager } from "@/components/admin/academy-lesson-quiz-manager";
 
 export const metadata = {
@@ -29,15 +30,16 @@ export default async function AdminLessonQuizPage({
       <header>
         <Link
           href={`/admin/academy/courses/${id}`}
-          className="text-brand-700 hover:text-brand-800 text-sm font-medium"
+          className="text-brand-700 hover:text-brand-800 inline-flex items-center gap-1 text-sm font-medium"
         >
-          ← بازگشت به دوره
+          <Icon name="arrow-right" className="size-4" />
+          بازگشت به دوره
         </Link>
         <h1 className="text-foreground mt-1 text-2xl font-extrabold">
           آزمونک درس: {lesson.title}
         </h1>
         <p className="text-muted-foreground mt-1 text-sm">
-          {lesson.course.emoji ?? "📘"} {lesson.course.title}
+          {lesson.course.title}
         </p>
       </header>
 

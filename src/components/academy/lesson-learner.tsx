@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Select } from "@/components/ui/select";
+import { Icon } from "@/components/ui/icon";
 import { useToast } from "@/components/ui/toast";
 import { FIELD_APPLICATION_OUTCOMES } from "@/lib/constants/academy";
 import type { LessonForLearning } from "@/lib/academy";
@@ -279,7 +280,10 @@ export function LessonLearner({
               ثبت کاربرد میدانی
             </Button>
           ) : (
-            <p className="text-success mt-3 text-sm">کاربرد میدانی ثبت شد. ✦</p>
+            <p className="text-success mt-3 inline-flex items-center gap-1.5 text-sm">
+              <Icon name="check-circle" className="size-4" />
+              کاربرد میدانی ثبت شد.
+            </p>
           )}
         </section>
       ) : (
@@ -355,7 +359,8 @@ export function LessonLearner({
         {prevLesson ? (
           <Link href={`/academy/lessons/${prevLesson.id}`}>
             <Button variant="outline" size="sm">
-              → درس قبل: {prevLesson.title}
+              <Icon name="arrow-right" className="size-4" />
+              درس قبل: {prevLesson.title}
             </Button>
           </Link>
         ) : (
@@ -363,7 +368,10 @@ export function LessonLearner({
         )}
         {nextLesson ? (
           <Link href={`/academy/lessons/${nextLesson.id}`}>
-            <Button size="sm">درس بعد: {nextLesson.title} ←</Button>
+            <Button size="sm">
+              درس بعد: {nextLesson.title}
+              <Icon name="arrow-left" className="size-4" />
+            </Button>
           </Link>
         ) : (
           <Link href={`/academy/${courseSlug}`}>

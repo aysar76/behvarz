@@ -4,6 +4,8 @@ import { AppShell } from "@/components/shell/app-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Icon } from "@/components/ui/icon";
+import { PageHeader } from "@/components/ui/page-header";
 import { FollowButton } from "@/components/interactions/follow-button";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/current-user";
@@ -109,22 +111,16 @@ export default async function FeedPage() {
   return (
     <AppShell>
       <div className="space-y-6">
-        <header className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="text-foreground text-2xl font-extrabold">
-              خوراک حرفه‌ای
-            </h1>
-            <p className="text-muted-foreground mt-1 text-sm">
-              تازه‌ترین مسائل و تجربه‌ها بر اساس موضوع‌ها و اعضایی که دنبال
-              می‌کنید؛ نه بر اساس محبوبیت.
-            </p>
-          </div>
-          <Link href="/saved">
-            <Button size="sm" variant="outline">
-              خواندنی‌های من
-            </Button>
-          </Link>
-        </header>
+        <PageHeader
+          title="خوراک حرفه‌ای"
+          description="تازه‌ترین مسائل و تجربه‌ها بر اساس موضوع‌ها و اعضایی که دنبال می‌کنید؛ نه بر اساس محبوبیت."
+          icon="feed"
+          actions={
+            <Link href="/saved">
+              <Button variant="outline">خواندنی‌های من</Button>
+            </Link>
+          }
+        />
 
         {followedTags.length > 0 && (
           <section>
@@ -149,7 +145,8 @@ export default async function FeedPage() {
         )}
 
         {!hasFollowedTopics && (
-          <div className="border-warning/40 bg-warning/5 text-warning rounded-xl border p-4 text-sm">
+          <div className="border-brand-200 bg-brand-50 flex items-center gap-2.5 rounded-xl border px-4 py-3 text-sm text-brand-800">
+            <Icon name="info" className="size-4 shrink-0" />
             هنوز موضوع یا عضوی را دنبال نکرده‌اید؛ برای دیدن خوراک مرتبط، از
             صفحه مسائل یا تجربه‌ها «دنبال‌کردن» را بزنید.
           </div>
@@ -157,6 +154,7 @@ export default async function FeedPage() {
 
         {!hasContent ? (
           <EmptyState
+            icon={<Icon name="feed" className="size-6" />}
             title="خوراکی برای نمایش نیست"
             description="مسئله‌ای مطرح کنید، تجربه‌ای ثبت کنید یا موضوع‌ها را دنبال کنید تا اینجا به‌روز شود."
           />
@@ -165,9 +163,9 @@ export default async function FeedPage() {
             {serializedProblems.map((problem) => (
               <article
                 key={problem.id}
-                className="border-border bg-card shadow-card rounded-xl border p-4"
+                className="border-border bg-card shadow-card hover:shadow-md hover:border-brand-200 rounded-xl border p-4 transition-all duration-200"
               >
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="flex flex-wrap items-center gap-1.5">
                   <Badge tone="brand">مسئله</Badge>
                   <Badge tone="neutral">
                     {PROBLEM_STATUS_LABELS[problem.status]}
@@ -175,18 +173,25 @@ export default async function FeedPage() {
                 </div>
                 <Link
                   href={`/problems/${problem.id}`}
-                  className="text-foreground hover:text-brand-700 mt-2 block text-sm font-bold"
+                  className="text-foreground hover:text-brand-700 mt-2 block text-sm leading-6 font-bold transition-colors"
                 >
                   {problem.title}
                 </Link>
-                <p className="text-muted-foreground mt-1 text-xs">
-                  {problem.isAnonymous
-                    ? "ناشناس"
-                    : (problem.author?.displayName ?? "بی‌نام")}
-                  {" • "}
-                  {formatRelativeTime(problem.createdAt)}
-                  {" • "}
-                  {problem.answerCount} پاسخ
+                <p className="text-muted-foreground mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+                  <span className="inline-flex items-center gap-1">
+                    <Icon name="user" className="size-3.5" />
+                    {problem.isAnonymous
+                      ? "ناشناس"
+                      : (problem.author?.displayName ?? "بی‌نام")}
+                  </span>
+                  <span className="inline-flex items-center gap-1">
+                    <Icon name="clock" className="size-3.5" />
+                    {formatRelativeTime(problem.createdAt)}
+                  </span>
+                  <span className="inline-flex items-center gap-1">
+                    <Icon name="messages" className="size-3.5" />
+                    {problem.answerCount} پاسخ
+                  </span>
                 </p>
                 {problem.tags.length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-1.5">
@@ -203,9 +208,9 @@ export default async function FeedPage() {
             {serializedExperiences.map((experience) => (
               <article
                 key={experience.id}
-                className="border-border bg-card shadow-card rounded-xl border p-4"
+                className="border-border bg-card shadow-card hover:shadow-md hover:border-brand-200 rounded-xl border p-4 transition-all duration-200"
               >
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="flex flex-wrap items-center gap-1.5">
                   <Badge tone="success">تجربه</Badge>
                   <Badge tone="neutral">
                     {EXPERIENCE_STATUS_LABELS[experience.status]}
@@ -213,16 +218,23 @@ export default async function FeedPage() {
                 </div>
                 <Link
                   href={`/experiences/${experience.slug}`}
-                  className="text-foreground hover:text-brand-700 mt-2 block text-sm font-bold"
+                  className="text-foreground hover:text-brand-700 mt-2 block text-sm leading-6 font-bold transition-colors"
                 >
                   {experience.title}
                 </Link>
-                <p className="text-muted-foreground mt-1 text-xs">
-                  {experience.author?.displayName ?? "بی‌نام"}
-                  {" • "}
-                  {formatRelativeTime(experience.createdAt)}
-                  {" • "}
-                  {experience.reuseCount} اجرا
+                <p className="text-muted-foreground mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+                  <span className="inline-flex items-center gap-1">
+                    <Icon name="user" className="size-3.5" />
+                    {experience.author?.displayName ?? "بی‌نام"}
+                  </span>
+                  <span className="inline-flex items-center gap-1">
+                    <Icon name="clock" className="size-3.5" />
+                    {formatRelativeTime(experience.createdAt)}
+                  </span>
+                  <span className="inline-flex items-center gap-1">
+                    <Icon name="check-circle" className="size-3.5" />
+                    {experience.reuseCount} اجرا
+                  </span>
                 </p>
                 {experience.tags.length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-1.5">

@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Icon } from "@/components/ui/icon";
 import { serializeCourse, type CourseRow } from "@/lib/academy";
 import { COURSE_STATUS_TONES, COURSE_STATUS_LABELS } from "@/lib/constants/academy";
 
@@ -76,9 +77,15 @@ export default async function AdminAcademyPage() {
                     <td className="px-4 py-3">
                       <Link
                         href={`/admin/academy/courses/${course.id}`}
-                        className="text-foreground hover:text-brand-700 font-semibold"
+                        className="text-foreground hover:text-brand-700 inline-flex items-center gap-2 font-semibold"
                       >
-                        {course.emoji ?? "📘"} {course.title}
+                        <span
+                          aria-hidden="true"
+                          className="bg-brand-50 text-brand-700 border-brand-100 flex size-7 shrink-0 items-center justify-center rounded-lg border"
+                        >
+                          <Icon name="book" className="size-3.5" />
+                        </span>
+                        {course.title}
                       </Link>
                       <p className="text-muted-foreground mt-0.5 text-xs" dir="ltr">
                         /{course.slug}
