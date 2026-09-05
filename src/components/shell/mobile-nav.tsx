@@ -82,7 +82,7 @@ export function MobileNav() {
         )}
 
         <nav aria-label="ناوبری موبایل">
-          <div className="mx-auto grid max-w-lg grid-cols-6 pb-[env(safe-area-inset-bottom)]">
+          <div className="mx-auto grid max-w-lg grid-cols-5 pb-[env(safe-area-inset-bottom)]">
             {mobileNav.map((item) => {
               const active = item.href === pathname;
               return (
@@ -92,7 +92,7 @@ export function MobileNav() {
                   onClick={close}
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    "relative flex flex-col items-center gap-1 py-2.5 text-[10.5px] font-medium transition-colors",
+                    "relative flex flex-col items-center gap-1 overflow-visible whitespace-nowrap break-keep py-2.5 text-[10.5px] font-medium transition-colors",
                     active ? "text-brand-700" : "text-muted-foreground hover:text-foreground",
                   )}
                 >
@@ -124,7 +124,7 @@ export function MobileNav() {
               aria-expanded={open}
               aria-controls="mobile-more-panel"
               className={cn(
-                "relative flex flex-col items-center gap-1 py-2.5 text-[10.5px] font-medium transition-colors",
+                "relative flex flex-col items-center gap-1 overflow-visible whitespace-nowrap break-keep py-2.5 text-[10.5px] font-medium transition-colors",
                 open ? "text-brand-700" : "text-muted-foreground hover:text-foreground",
               )}
             >

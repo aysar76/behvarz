@@ -53,7 +53,7 @@ function DesktopMenu() {
                       aria-disabled="true"
                       role="menuitem"
                       title="به‌زودی"
-                      className="text-muted-foreground/40 flex cursor-not-allowed items-center gap-2.5 px-4 py-2.5 text-sm font-medium"
+                      className="text-muted-foreground/40 flex cursor-not-allowed items-center gap-2.5 overflow-visible whitespace-nowrap break-keep px-4 py-2.5 text-sm font-medium"
                     >
                       <Icon
                         name={item.icon}
@@ -71,7 +71,7 @@ function DesktopMenu() {
                     onClick={close}
                     aria-current={active ? "page" : undefined}
                     className={cn(
-                      "hover:bg-accent focus-visible:outline-ring flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium focus-visible:outline-2",
+                      "hover:bg-accent focus-visible:outline-ring flex items-center gap-2.5 overflow-visible whitespace-nowrap break-keep px-4 py-2.5 text-sm font-medium focus-visible:outline-2",
                       active && "bg-brand-50 text-brand-800",
                     )}
                   >
@@ -104,7 +104,7 @@ export function AppHeader() {
 
         <nav
           aria-label="ناوبری اصلی"
-          className="hidden items-center gap-1 whitespace-nowrap break-keep overflow-x-auto xl:flex [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="hidden flex-nowrap items-center gap-1 overflow-visible whitespace-nowrap break-keep xl:flex"
         >
           {mainNav.map((item) => {
             const active = item.href === pathname;
@@ -113,7 +113,7 @@ export function AppHeader() {
                 <span
                   key={item.href}
                   aria-disabled="true"
-                  className="text-muted-foreground/40 cursor-not-allowed rounded-lg px-2.5 py-2 text-sm font-medium whitespace-nowrap"
+                  className="text-muted-foreground/40 cursor-not-allowed overflow-visible whitespace-nowrap break-keep rounded-lg px-2 py-2 text-sm font-medium"
                   title="به‌زودی"
                 >
                   {item.label}
@@ -126,7 +126,7 @@ export function AppHeader() {
                 href={item.href}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "relative rounded-lg px-2.5 py-2 text-sm font-medium whitespace-nowrap transition-colors",
+                  "relative overflow-visible whitespace-nowrap break-keep rounded-lg px-2 py-2 text-sm font-medium transition-colors",
                   active
                     ? "bg-brand-50 text-brand-800"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground",
@@ -136,7 +136,7 @@ export function AppHeader() {
                 {active && (
                   <span
                     aria-hidden="true"
-                    className="bg-primary absolute inset-x-2.5 -bottom-px h-0.5 rounded-full"
+                    className="bg-primary absolute inset-x-2 -bottom-px h-0.5 rounded-full"
                   />
                 )}
               </Link>

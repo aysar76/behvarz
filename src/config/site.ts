@@ -14,7 +14,6 @@ export type NavItem = {
 };
 
 export const mainNav: NavItem[] = [
-  { label: "خانه", href: "/", icon: "home" },
   { label: "اتاق مسئله", href: "/problems", icon: "question" },
   { label: "بانک تجربه", href: "/experiences", icon: "book" },
   { label: "کشف دانش", href: "/discover", icon: "compass" },
@@ -28,7 +27,6 @@ export const mainNav: NavItem[] = [
 ];
 
 export const mobileNav: NavItem[] = [
-  { label: "خانه", href: "/", icon: "home" },
   { label: "مسئله", href: "/problems", icon: "question" },
   { label: "کشف", href: "/discover", icon: "compass" },
   { label: "حلقه‌ها", href: "/circles", icon: "users" },
