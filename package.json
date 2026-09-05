@@ -19,7 +19,7 @@
     "db:studio": "prisma studio",
     "backup": "node scripts/backup.mjs",
     "restore": "node scripts/restore.mjs",
-    "db:seed": "node scripts/seed-demo.mjs",
+    "db:seed": "tsx scripts/seed-demo.ts",
     "check:all": "pnpm lint && pnpm typecheck && pnpm test:run && pnpm build"
   },
   "dependencies": {
@@ -53,6 +53,7 @@
     "prettier-plugin-tailwindcss": "^0.8.1",
     "prisma": "7.10.0",
     "tailwindcss": "^4",
+    "tsx": "^4.23.13",
     "typescript": "^5",
     "vitest": "^5.0.0"
   },
@@ -61,6 +62,6 @@
     "node": ">=20.9.0"
   },
   "prisma": {
-    "seed": "node scripts/seed-demo.mjs"
+    "seed": "tsx scripts/seed-demo.ts"
   }
 }
