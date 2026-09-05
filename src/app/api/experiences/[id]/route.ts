@@ -6,7 +6,7 @@ import { requireUser } from "@/lib/auth/current-user";
 import { assertPermission } from "@/lib/auth/authorization";
 import { getClientIp } from "@/lib/auth/session";
 import { auditLog } from "@/lib/audit";
-import { scanSensitiveContent } from "@/lib/content-safety";
+import { assertAccountCanCreate, scanContentForModeration } from "@/lib/moderation";
 import { experienceUpdateSchema } from "@/lib/validations/experience";
 import { getExperienceRow, syncExperienceTags } from "@/lib/experiences";
 import { getInteractionState } from "@/lib/interactions";
@@ -181,6 +181,8 @@ export async function PATCH(
       await readJsonBody<UpdateExperienceInput>(request),
     );
 
+    assertAccountCanCreate(user);
+
     const sensitiveFields: string[] = [];
     for (const field of [
       "title",
@@ -195,7 +197,7 @@ export async function PATCH(
     ] as const) {
       if (input[field]) sensitiveFields.push(input[field] as string);
     }
-    const sensitive = scanSensitiveContent(...sensitiveFields);
+    const sensitive = await scanContentForModeration(...sensitiveFields);
 
     if (input.isDraft === true && current.isDraft === false) {
       throw new AppError(

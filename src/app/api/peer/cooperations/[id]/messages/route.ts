@@ -7,7 +7,7 @@ import { assertPermission } from "@/lib/auth/authorization";
 import { getClientIp } from "@/lib/auth/session";
 import { isRateLimited } from "@/lib/auth/rate-limit";
 import { auditLog } from "@/lib/audit";
-import { scanSensitiveContent } from "@/lib/content-safety";
+import { assertAccountCanCreate, scanContentForModeration } from "@/lib/moderation";
 import { peerMessageSchema } from "@/lib/validations/peer";
 import { requireCooperationParticipant } from "@/lib/peer";
 import { serializePeerMessage } from "@/lib/serializers/peer";
@@ -32,6 +32,8 @@ export async function POST(
       );
     }
 
+    assertAccountCanCreate(user);
+
     const input = validateInput(
       peerMessageSchema,
       await readJsonBody<PeerMessageInput>(request),
@@ -42,10 +44,12 @@ export async function POST(
       throw new AppError("CONFLICT", "همکاری پایان یافته است؛ امکان ارسال پیام نیست");
     }
 
-    if (scanSensitiveContent(input.body).length > 0) {
+    const sensitive = await scanContentForModeration(input.body);
+    if (sensitive.length > 0) {
       throw new AppError(
         "VALIDATION",
         "پیام شامل اطلاعات قابل شناسایی (بیمار یا شخص) است. لطفاً آن را ناشناس‌سازی کنید.",
+        { details: { sensitiveMatches: sensitive } },
       );
     }
 

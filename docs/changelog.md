@@ -1,5 +1,19 @@
 # تغییرات (Changelog)
 
+## فاز ۷ — حکمرانی محتوا و ایمنی
+
+- **مدیریت وضعیت حساب کاربران** (`/admin/users`): اخطار/محدودسازی/تعلیق/رفع محدودیت با دلیل؛ فیلتر بر اساس وضعیت و جست‌وجو. اقدام روی خود و `super_admin` ممنوع.
+- **اجرا (Enforcement)**: کاربر معلق/محدود نمی‌تواند محتوا منتشر کند (`assertAccountCanCreate` در همه مسیرهای ثبت)؛ کاربر معلق نمی‌تواند تعامل کند (`assertAccountCanInteract` در دنبال/ذخیره/تشکر/گزارش). کاربر معلق می‌تواند وارد شود (برای دیدن وضعیت و اعتراض).
+- **فرآیند اعتراض** (`/appeals`): ثبت اعتراض روی محتوای خود یا وضعیت حساب (فقط نویسنده)؛ یک اعتراض در انتظار برای هر هدف؛ داشبورد ناظر `/admin/appeals` با پذیرش/رد (بازیابی محتوا یا رفع محدودیت).
+- **تاریخچه تصمیم ناظر** (`ModerationDecision` + `/admin/decisions`): هر اقدام نظارتی (hide/remove/restore/warn/restrict/suspend/lift) ثبت و قابل بازبینی است؛ Soft Delete با Restore حفظ شد.
+- **مدیریت واژه‌های حساس** (`/admin/sensitive-terms`): افزودن/فعال/غیرفعال/حذف؛ `scanContentForModeration` الگوهای ثابت + واژه‌های فعال را ترکیب می‌کند (کد `managed_term`).
+- **مدیریت برچسب‌ها** (`/admin/tags`): ایجاد برچسب + فعال/غیرفعال‌کردن (`Tag.isActive`).
+- **گزارش همکاری**: صف رسیدگی به `PeerCooperationReport` در داشبورد ناظر + `POST /api/admin/peer-reports/[id]`.
+- **کنترل Spam**: جلوگیری از گزارش تکراری در انتظار بررسی (CONFLICT).
+- **بنر وضعیت حساب** بالای صفحه برای کاربران دارای وضعیت غیرفعال + لینک «اعتراض به تصمیم» در منوی کاربر.
+- مجوزهای RBAC جدید `moderation:users/appeals/terms/decisions` و `tags:manage`؛ `moderation:decisions` برای content_moderator هم فعال.
+- Migration فاز ۷ (`ModerationDecision`، `Appeal`، `SensitiveTerm`، `AccountStatus` + `User.accountStatus*` + `Tag.isActive`).
+
 ## فاز ۶ — حلقه‌های همیار
 
 - **درخواست همیار** (`/peer`): ثبت درخواست (عنوان، شرح، نوع مانع، برچسب‌ها، استان) + جفت‌سازی همیاران مرتبط (`/api/peer/help-requests/[id]/suggestions`) بر اساس تمایل به همیاری، تجربه/برچسب، مهارت/علاقه، استان و کیفیت همکاری‌های قبلی — بدون Popularity.

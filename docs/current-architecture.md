@@ -1,6 +1,6 @@
 # معماری فعلی (Current Architecture)
 
-**وضعیت:** به‌روزرسانی برای فاز ۶ — تاریخ: مهر ۱۴۰۵
+**وضعیت:** به‌روزرسانی برای فاز ۷ — تاریخ: مهر ۱۴۰۵
 
 ## وضعیت واقعی مخزن
 
@@ -71,6 +71,19 @@
 - **امنیت محتوا:** `scanSensitiveContent` روی نام/توضیح/موضوع حلقه و عنوان/شرح درخواست همیار؛ Rate Limit برای ایجاد حلقه (۵/ساعت) و پیشنهاد همیار (۱۵/ساعت).
 - **RBAC:** مجوزهای جدید `circles:create/join/manage/meeting` و `peer:request/offer/cooperate` برای اعضا.
 - **Audit Log:** `circle.create/archive/transfer`، `peer.offer.requester/helper`، `peer.help-request.cancel`، `peer.cooperation.goal` و غیره.
+
+## معماری حکمرانی محتوا و ایمنی (فاز ۷)
+
+- **مدل داده:** `ModerationDecision` (تاریخچه تصمیم ناظر)، `Appeal` (فرآیند اعتراض)، `SensitiveTerm` (واژه‌های حساس قابل مدیریت) + فیلدهای `accountStatus/accountStatusReason/accountStatusAt` روی `User` + `Tag.isActive` برای مدیریت برچسب.
+- **وضعیت حساب:** `active`/`warned`/`restricted`/`suspended`. اقدامات `POST /api/admin/users/[id]/action` (warn/restrict/suspend/lift) فقط برای admin/super_admin؛ اقدام روی خود و `super_admin` ممنوع. همه در `ModerationDecision` + `AuditLog` ثبت می‌شوند.
+- **اجرا (Enforcement):** `assertAccountCanCreate` در همه مسیرهای ثبت محتوا (مسئله/تجربه/پاسخ/حلقه/همیار) و `assertAccountCanInteract` در تعاملات (دنبال/ذخیره/تشکر/گزارش). کاربر معلق می‌تواند وارد شود (برای دیدن وضعیت و اعتراض) اما نمی‌تواند محتوا/تعامل داشته باشد.
+- **فرآیند اعتراض:** کاربر (نویسنده) می‌تواند به تصمیم روی محتوای خود یا وضعیت حسابش اعتراض کند (`POST/GET /api/appeals`)؛ یک اعتراض در انتظار برای هر هدف. ناظر در `/admin/appeals` می‌پذیرد/رد می‌کند؛ پذیرش → بازیابی محتوا یا رفع محدودیت حساب.
+- **تاریخچه تصمیم:** `GET /api/admin/decisions` تمام اقدامات (hide/remove/restore/warn/restrict/suspend/lift) را با ناظر و دلیل بازمی‌گرداند. Soft Delete با Restore حفظ شد.
+- **واژه‌های حساس:** `SensitiveTerm` (term یکتا، isActive) مدیریت در `/admin/sensitive-terms`؛ `scanContentForModeration` در `src/lib/moderation.ts` الگوهای ثابت + واژه‌های فعال را ترکیب می‌کند (کد `managed_term`). در صورت تطبیق → `needsReview` یا درخواست تأیید ناشناس‌سازی.
+- **گزارش همکاری:** `PeerCooperationReport` در صف ناظر (`GET /api/admin/moderation` → `peerReports`) با `POST /api/admin/peer-reports/[id]`؛ در صورت تأیید، اخطار روی طرف خاطی ثبت می‌شود.
+- **کنترل Spam:** جلوگیری از گزارش تکراریِ در انتظار بررسی (CONFLICT) + Rate Limit موجود (گزارش ۵/ساعت).
+- **RBAC (فاز ۷):** `moderation:users`، `moderation:appeals`، `moderation:terms`، `tags:manage` فقط admin/super_admin؛ `moderation:decisions` برای content_moderator هم فعال. همه اقدامات با `assertPermission` سمت سرور.
+- **ناظر به Secret دسترسی ندارد:** هیچ API اداری کد OTP/توکن نشست را بازنمی‌گرداند.
 
 ## محدودیت‌ها و مفروضات
 

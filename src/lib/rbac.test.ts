@@ -66,6 +66,28 @@ describe("hasPermission", () => {
     expect(hasPermission("member", "peer:offer")).toBe(true);
     expect(hasPermission("member", "peer:cooperate")).toBe(true);
   });
+
+  it("lets admins moderate users and manage terms/tags/appeals", () => {
+    expect(hasPermission("admin", "moderation:users")).toBe(true);
+    expect(hasPermission("admin", "moderation:appeals")).toBe(true);
+    expect(hasPermission("admin", "moderation:terms")).toBe(true);
+    expect(hasPermission("admin", "moderation:decisions")).toBe(true);
+    expect(hasPermission("admin", "tags:manage")).toBe(true);
+  });
+
+  it("lets content moderators view decisions but not manage users", () => {
+    expect(hasPermission("content_moderator", "moderation:decisions")).toBe(true);
+    expect(hasPermission("content_moderator", "moderation:users")).toBe(false);
+    expect(hasPermission("content_moderator", "moderation:appeals")).toBe(false);
+    expect(hasPermission("content_moderator", "tags:manage")).toBe(false);
+  });
+
+  it("denies members governance permissions", () => {
+    expect(hasPermission("member", "moderation:users")).toBe(false);
+    expect(hasPermission("member", "moderation:appeals")).toBe(false);
+    expect(hasPermission("member", "moderation:terms")).toBe(false);
+    expect(hasPermission("member", "tags:manage")).toBe(false);
+  });
 });
 
 describe("can", () => {

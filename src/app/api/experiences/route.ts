@@ -7,7 +7,7 @@ import { assertPermission } from "@/lib/auth/authorization";
 import { getClientIp } from "@/lib/auth/session";
 import { isRateLimited } from "@/lib/auth/rate-limit";
 import { auditLog } from "@/lib/audit";
-import { scanSensitiveContent } from "@/lib/content-safety";
+import { assertAccountCanCreate, scanContentForModeration } from "@/lib/moderation";
 import { experienceCreateSchema } from "@/lib/validations/experience";
 import { EXPERIENCE_STATUSES } from "@/lib/experience-status";
 import {
@@ -148,12 +148,14 @@ export async function POST(request: Request) {
       );
     }
 
+    assertAccountCanCreate(user);
+
     const input = validateInput(
       experienceCreateSchema,
       await readJsonBody<CreateExperienceInput>(request),
     );
 
-    const sensitive = scanSensitiveContent(...sensitiveTexts(input));
+    const sensitive = await scanContentForModeration(...sensitiveTexts(input));
     const isPublishing = input.isDraft !== true;
     let needsReview = false;
     if (sensitive.length > 0) {

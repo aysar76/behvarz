@@ -7,7 +7,7 @@ import { assertPermission } from "@/lib/auth/authorization";
 import { getClientIp } from "@/lib/auth/session";
 import { isRateLimited } from "@/lib/auth/rate-limit";
 import { auditLog } from "@/lib/audit";
-import { scanSensitiveContent } from "@/lib/content-safety";
+import { assertAccountCanCreate, scanContentForModeration } from "@/lib/moderation";
 import { answerSchema } from "@/lib/validations/problem";
 import { nextStatusAfterAnswer } from "@/lib/problem-status";
 import { ANSWER_DETAIL_INCLUDE } from "@/lib/problems";
@@ -32,6 +32,8 @@ export async function POST(
       );
     }
 
+    assertAccountCanCreate(user);
+
     const { id } = await params;
     const problem = await prisma.problem.findUnique({ where: { id } });
     if (!problem) {
@@ -52,7 +54,7 @@ export async function POST(
       await readJsonBody<AnswerInput>(request),
     );
 
-    const sensitive = scanSensitiveContent(input.body);
+    const sensitive = await scanContentForModeration(input.body);
     if (sensitive.length > 0) {
       if (input.sensitiveAcknowledged !== true) {
         throw new AppError(

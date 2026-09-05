@@ -14,6 +14,7 @@ import {
   serializeExperience,
   type ExperienceRow,
 } from "@/lib/serializers/experience";
+import { serializePeerReport, type PeerReportRow } from "@/lib/serializers/peer";
 
 const AUTHOR_SELECT = {
   id: true,
@@ -33,7 +34,7 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const onlyReports = url.searchParams.get("reports") === "1";
 
-    const [problems, experiences, reports] = await Promise.all([
+    const [problems, experiences, reports, peerReports] = await Promise.all([
       onlyReports
         ? []
         : prisma.problem.findMany({
@@ -84,6 +85,23 @@ export async function GET(request: Request) {
         orderBy: { createdAt: "desc" },
         take: 50,
       }),
+      prisma.peerCooperationReport.findMany({
+        where: { status: "pending" },
+        include: {
+          reporter: { select: { id: true, displayName: true } },
+          cooperation: {
+            select: {
+              id: true,
+              requesterId: true,
+              helperId: true,
+              requester: { select: { displayName: true } },
+              helper: { select: { displayName: true } },
+            },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 50,
+      }),
     ]);
 
     await auditLog({
@@ -101,6 +119,9 @@ export async function GET(request: Request) {
         serializeExperience(row),
       ),
       reports: (reports as unknown as ReportRow[]).map(serializeReport),
+      peerReports: (peerReports as unknown as PeerReportRow[]).map(
+        serializePeerReport,
+      ),
     });
   } catch (error) {
     return jsonError(error);

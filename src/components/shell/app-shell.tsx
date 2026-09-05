@@ -6,6 +6,7 @@ import {
 import { ToastProvider } from "@/components/ui/toast";
 import { AppHeader } from "@/components/shell/app-header";
 import { MobileNav } from "@/components/shell/mobile-nav";
+import { AccountStatusBanner } from "@/components/auth/account-status-banner";
 
 export async function AppShell({ children }: { children: React.ReactNode }) {
   const user = await getCurrentUser();
@@ -23,6 +24,8 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
         visibility: user.visibility,
         onboardingCompleted: user.onboardingCompleted,
         willingToHelp: user.willingToHelp,
+        accountStatus: user.accountStatus,
+        accountStatusReason: user.accountStatusReason,
         skills: [],
         interests: [],
         createdAt: user.createdAt.toISOString(),
@@ -34,6 +37,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
       <ToastProvider>
         <div className="flex min-h-dvh flex-col">
           <AppHeader />
+          <AccountStatusBanner />
           <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 pb-24 md:pb-10">
             {children}
           </main>

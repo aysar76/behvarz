@@ -53,7 +53,12 @@ export type Permission =
   | "circles:meeting"
   | "peer:request"
   | "peer:offer"
-  | "peer:cooperate";
+  | "peer:cooperate"
+  | "moderation:users"
+  | "moderation:appeals"
+  | "moderation:terms"
+  | "moderation:decisions"
+  | "tags:manage";
 
 const CONTENT_PERMISSIONS: readonly Permission[] = [
   "interactions:follow",
@@ -83,6 +88,15 @@ const MODERATION_PERMISSIONS: readonly Permission[] = [
   "content:moderate",
   "reports:review",
   "experiences:review",
+  "moderation:decisions",
+];
+
+const ADMIN_PERMISSIONS: readonly Permission[] = [
+  "moderation:users",
+  "moderation:appeals",
+  "moderation:terms",
+  "moderation:decisions",
+  "tags:manage",
 ];
 
 const PERMISSIONS_BY_ROLE: Record<Role, readonly Permission[]> = {
@@ -132,6 +146,7 @@ const PERMISSIONS_BY_ROLE: Record<Role, readonly Permission[]> = {
     "users:manage",
     ...CONTENT_PERMISSIONS,
     ...MODERATION_PERMISSIONS,
+    ...ADMIN_PERMISSIONS,
   ],
   super_admin: [
     "auth:signin",
@@ -143,6 +158,7 @@ const PERMISSIONS_BY_ROLE: Record<Role, readonly Permission[]> = {
     "audit:read",
     ...CONTENT_PERMISSIONS,
     ...MODERATION_PERMISSIONS,
+    ...ADMIN_PERMISSIONS,
   ],
 };
 

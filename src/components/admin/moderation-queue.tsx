@@ -13,11 +13,13 @@ import type {
   SerializedReport,
 } from "@/lib/serializers/problem";
 import type { SerializedExperience } from "@/lib/serializers/experience";
+import type { SerializedPeerReport } from "@/lib/serializers/peer";
 
 interface ModerationQueueData {
   problems: SerializedProblem[];
   experiences: SerializedExperience[];
   reports: SerializedReport[];
+  peerReports: SerializedPeerReport[];
 }
 
 export function ModerationQueue() {
@@ -36,7 +38,7 @@ export function ModerationQueue() {
     if (!res.ok || !body.ok) {
       throw new Error(body.error?.message ?? "خطا در دریافت صف بررسی");
     }
-    return body.data ?? { problems: [], experiences: [], reports: [] };
+    return body.data ?? { problems: [], experiences: [], reports: [], peerReports: [] };
   }, []);
 
   const load = useCallback(async () => {
@@ -95,6 +97,31 @@ export function ModerationQueue() {
     setBusyId(id);
     try {
       const res = await fetch(`/api/admin/reports/${id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action }),
+      });
+      const body = (await res.json()) as {
+        ok: boolean;
+        error?: { message: string };
+      };
+      if (!res.ok || !body.ok) {
+        toast({ title: body.error?.message ?? "خطا در بررسی", tone: "danger" });
+        return;
+      }
+      toast({ title: "گزارش بررسی شد", tone: "success" });
+      await load();
+    } catch {
+      toast({ title: "خطا در ارتباط با سرور", tone: "danger" });
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  async function reviewPeerReport(id: string, action: "resolve" | "reject") {
+    setBusyId(id);
+    try {
+      const res = await fetch(`/api/admin/peer-reports/${id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action }),
@@ -420,6 +447,63 @@ export function ModerationQueue() {
                     variant="ghost"
                     loading={busyId === report.id}
                     onClick={() => reviewReport(report.id, "reject")}
+                  >
+                    رد گزارش
+                  </Button>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
+    <section>
+        <h2 className="text-foreground mb-3 text-lg font-bold">
+          گزارش‌های همکاری
+        </h2>
+        {data.peerReports.length === 0 ? (
+          <EmptyState
+            title="گزارشی در انتظار نیست"
+            description="گزارش‌های سوءاستفاده در همکاری‌ها اینجا ظاهر می‌شوند."
+          />
+        ) : (
+          <div className="space-y-3">
+            {data.peerReports.map((report) => (
+              <article
+                key={report.id}
+                className="border-border bg-card shadow-card rounded-xl border p-4"
+              >
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="text-foreground text-sm font-bold">
+                    {report.targetLabel}
+                  </h3>
+                  <Badge tone="warning">در انتظار</Badge>
+                </div>
+                <p className="text-muted-foreground mt-1 text-xs">
+                  گزارش توسط {report.reporterLabel} •{" "}
+                  {formatRelativeTime(report.createdAt)}
+                </p>
+                <p className="text-foreground mt-2 text-sm">
+                  دلیل: {report.reason}
+                </p>
+                {report.note && (
+                  <p className="text-muted-foreground mt-1 text-sm">
+                    توضیح: {report.note}
+                  </p>
+                )}
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    loading={busyId === report.id}
+                    onClick={() => reviewPeerReport(report.id, "resolve")}
+                  >
+                    تأیید گزارش
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    loading={busyId === report.id}
+                    onClick={() => reviewPeerReport(report.id, "reject")}
                   >
                     رد گزارش
                   </Button>

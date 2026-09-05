@@ -190,6 +190,48 @@ enum PeerCooperationReportReason {
   other
 }
 
+// NOTE (فاز ۷): حکمرانی محتوا و ایمنی.
+// وضعیت حساب کاربر، تاریخچه تصمیم ناظر، فرآیند اعتراض و واژه‌های حساس قابل مدیریت.
+// هیچ داده بیمار در مدل داده وجود ندارد (رجوع به docs/data-privacy-rules.md).
+
+enum AccountStatus {
+  active
+  warned
+  restricted
+  suspended
+}
+
+enum ModerationTargetType {
+  problem
+  answer
+  experience
+  user
+}
+
+enum ModerationAction {
+  warn
+  restrict
+  suspend
+  lift
+  hide_content
+  unhide_content
+  remove_content
+  restore_content
+}
+
+enum AppealStatus {
+  pending
+  approved
+  rejected
+}
+
+enum AppealTargetType {
+  problem
+  answer
+  experience
+  account
+}
+
 model User {
   id                  String           @id @default(cuid())
   phone               String           @unique
@@ -203,6 +245,9 @@ model User {
   visibility          Visibility       @default(members)
   onboardingCompleted Boolean          @default(false)
   willingToHelp       Boolean          @default(false)
+  accountStatus       AccountStatus    @default(active)
+  accountStatusReason String?
+  accountStatusAt     DateTime?
   createdAt           DateTime         @default(now())
   updatedAt           DateTime         @updatedAt
 
@@ -233,6 +278,10 @@ model User {
   peerCooperationsH  PeerCooperation[]     @relation("peerCooperationHelper")
   peerMessages       PeerMessage[]
   peerReports        PeerCooperationReport[]
+  moderationDecisions ModerationDecision[]     @relation("moderationDecisionMaker")
+  appeals             Appeal[]                 @relation("appealAuthor")
+  appealsDecided      Appeal[]                 @relation("appealDecisionMaker")
+  sensitiveTerms      SensitiveTerm[]          @relation("sensitiveTermCreator")
 }
 
 model Problem {
@@ -323,6 +372,7 @@ model ProblemStatusChange {
 model Tag {
   id          String          @id @default(cuid())
   name        String          @unique
+  isActive    Boolean         @default(true)
   problems    ProblemTag[]
   experiences ExperienceTag[]
 }
@@ -759,4 +809,55 @@ model AuditLog {
 
   @@index([actorId])
   @@index([action])
+}
+
+// NOTE (فاز ۷): تاریخچه تصمیم ناظر — هر اقدام حساس نظارتی (اخطار، محدودسازی،
+// تعلیق، مخفی‌سازی، حذف نرم و...) به‌صورت جداگانه ثبت می‌شود تا امکان بازبینی
+// و بازگشت تصمیم اشتباه وجود داشته باشد.
+model ModerationDecision {
+  id          String               @id @default(cuid())
+  moderatorId String
+  moderator   User                 @relation("moderationDecisionMaker", fields: [moderatorId], references: [id], onDelete: Cascade)
+  targetType  ModerationTargetType
+  targetId    String
+  action      ModerationAction
+  reason      String?
+  note        String?
+  createdAt   DateTime             @default(now())
+
+  @@index([targetType, targetId])
+  @@index([moderatorId])
+}
+
+// NOTE (فاز ۷): فرآیند اعتراض — کاربر می‌تواند به تصمیم ناظر روی محتوای خودش یا
+// وضعیت حساب خود اعتراض کند و ناظر با بررسی، آن را می‌پذیرد یا رد می‌کند.
+model Appeal {
+  id            String           @id @default(cuid())
+  userId        String
+  user          User             @relation("appealAuthor", fields: [userId], references: [id], onDelete: Cascade)
+  targetType    AppealTargetType
+  targetId      String
+  reason        String
+  status        AppealStatus     @default(pending)
+  decisionNote  String?
+  decidedBy     String?
+  decidedByUser User?            @relation("appealDecisionMaker", fields: [decidedBy], references: [id], onDelete: SetNull)
+  decidedAt     DateTime?
+  createdAt     DateTime         @default(now())
+
+  @@index([status])
+  @@index([userId])
+  @@index([targetType, targetId])
+}
+
+// NOTE (فاز ۷): واژه‌ها و الگوهای حساس قابل مدیریت توسط ناظر. این واژه‌ها در
+// کنار الگوهای ثابت (`lib/content-safety.ts`) برای علامت‌گذاری محتوای حساس استفاده می‌شوند.
+model SensitiveTerm {
+  id           String   @id @default(cuid())
+  term         String   @unique
+  description  String?
+  isActive     Boolean  @default(true)
+  createdById  String?
+  createdBy    User?    @relation("sensitiveTermCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt    DateTime @default(now())
 }

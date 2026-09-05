@@ -1,4 +1,4 @@
-# اسکیمای دیتابیس (Database Schema) — فاز ۶
+# اسکیمای دیتابیس (Database Schema) — فاز ۷
 
 **وضعیت:** به‌روزرسانی با وضعیت واقعی کد — تاریخ: مهر ۱۴۰۵
 
@@ -39,6 +39,11 @@
 | PeerCooperationStatus | active، completed، closed                                                                      |
 | PeerCooperationReportStatus | pending، resolved، rejected                                                             |
 | PeerCooperationReportReason | abusive، harassment، off_topic، sensitive_info، other                                   |
+| AccountStatus               | active، warned، restricted، suspended                                                    |
+| ModerationTargetType        | problem، answer، experience، user                                                        |
+| ModerationAction            | warn، restrict، suspend، lift، hide_content، unhide_content، remove_content، restore_content |
+| AppealStatus                | pending، approved، rejected                                                             |
+| AppealTargetType            | problem، answer، experience، account                                                     |
 
 ## مدل‌ها
 
@@ -58,6 +63,9 @@
 | visibility          | Visibility (members)    | تنظیم حریم خصوصی پروفایل                            |
 | onboardingCompleted | Boolean (false)         | تکمیل Onboarding                                    |
 | willingToHelp       | Boolean (false)         | تمایل به همیاری (فاز ۶؛ فقط این کاربران در پیشنهاد همیار) |
+| accountStatus       | AccountStatus (active)  | وضعیت حساب (فاز ۷: active/warned/restricted/suspended) |
+| accountStatusReason | String?                 | دلیل آخرین تغییر وضعیت حساب (فاز ۷)                 |
+| accountStatusAt     | DateTime?               | زمان آخرین تغییر وضعیت حساب (فاز ۷)                 |
 | createdAt/updatedAt | DateTime                | زمان ثبت/به‌روزرسانی                                |
 
 ### OtpCode
@@ -193,7 +201,7 @@
 
 ### Tag / ProblemTag
 
-- `Tag` (id, name UNIQUE) — برچسب‌های سراسری (مشترک با فازهای بعد).
+- `Tag` (id, name UNIQUE, isActive) — برچسب‌های سراسری (مشترک با فازهای بعد). `isActive` برای مدیریت برچسب در فاز ۷ اضافه شد.
 - `ProblemTag` — رابطه چند-به-چند مسئله/برچسب با کلید ترکیبی.
 
 ### Experience (فاز ۴)
@@ -480,6 +488,55 @@
 | createdAt   | DateTime                         | زمان         |
 
 > Index: `[cooperationId]`، `[status]`.
+
+### ModerationDecision (فاز ۷)
+
+تاریخچه تصمیم ناظر — هر اقدام نظارتی:
+
+| فیلد        | نوع                  | توضیح                          |
+| ----------- | -------------------- | ------------------------------ |
+| id          | String PK            | شناسه                          |
+| moderatorId | FK → User (Cascade)  | ناظر                           |
+| targetType  | ModerationTargetType | problem/answer/experience/user |
+| targetId    | String               | شناسه هدف                      |
+| action      | ModerationAction     | warn/restrict/suspend/lift/hide_content/unhide_content/remove_content/restore_content |
+| reason      | String?              | دلیل                           |
+| note        | String?              | یادداشت ناظر                   |
+| createdAt   | DateTime             | زمان                           |
+
+> Index: `[targetType, targetId]`، `[moderatorId]`.
+
+### Appeal (فاز ۷)
+
+فرآیند اعتراض کاربر به تصمیم ناظر:
+
+| فیلد          | نوع              | توضیح                              |
+| ------------- | ---------------- | ---------------------------------- |
+| id            | String PK        | شناسه                              |
+| userId        | FK → User (Cascade) | اعتراض‌کننده                     |
+| targetType    | AppealTargetType | problem/answer/experience/account  |
+| targetId      | String           | شناسه هدف                          |
+| reason        | String           | توضیح اعتراض                       |
+| status        | AppealStatus     | pending/approved/rejected          |
+| decisionNote  | String?          | یادداشت ناظر هنگام تصمیم           |
+| decidedBy     | FK → User? (SetNull) | ناظر تصمیم‌گیرنده                |
+| decidedAt     | DateTime?        | زمان تصمیم                         |
+| createdAt     | DateTime         | زمان ثبت                           |
+
+> Index: `[status]`، `[userId]`، `[targetType, targetId]`.
+
+### SensitiveTerm (فاز ۷)
+
+واژه‌های حساس قابل مدیریت:
+
+| فیلد         | نوع              | توضیح                            |
+| ------------ | ---------------- | -------------------------------- |
+| id           | String PK        | شناسه                            |
+| term         | String UNIQUE    | واژه/الگو (مطابقت شامل‌بودن)      |
+| description  | String?          | توضیح                            |
+| isActive     | Boolean (true)   | فعال/غیرفعال                     |
+| createdById  | FK → User? (SetNull) | ثبت‌کننده                     |
+| createdAt    | DateTime         | زمان                             |
 
 ## قواعد
 

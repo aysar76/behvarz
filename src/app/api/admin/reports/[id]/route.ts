@@ -5,8 +5,8 @@ import { AppError } from "@/lib/errors";
 import { requireUser } from "@/lib/auth/current-user";
 import { assertPermission } from "@/lib/auth/authorization";
 import { getClientIp } from "@/lib/auth/session";
-import { auditLog } from "@/lib/audit";
 import { z } from "zod";
+import { recordModerationDecision } from "@/lib/moderation";
 
 const reviewReportSchema = z.object({
   action: z.enum(["resolve", "reject"]),
@@ -38,26 +38,54 @@ export async function POST(
       ),
     );
 
-    const updated = await prisma.contentReport.update({
-      where: { id },
-      data: {
-        status: input.action === "resolve" ? "resolved" : "rejected",
-        reviewedBy: user.id,
-        reviewedAt: new Date(),
-        moderatorNote: input.note ?? null,
-      },
+    const updated = await prisma.$transaction(async (tx) => {
+      const updatedReport = await tx.contentReport.update({
+        where: { id },
+        data: {
+          status: input.action === "resolve" ? "resolved" : "rejected",
+          reviewedBy: user.id,
+          reviewedAt: new Date(),
+          moderatorNote: input.note ?? null,
+        },
+      });
+
+      if (input.action === "resolve" && report.answerId) {
+        await tx.problemAnswer.updateMany({
+          where: { id: report.answerId },
+          data: { moderation: "hidden", needsReview: false },
+        });
+      } else if (input.action === "resolve" && report.problemId) {
+        await tx.problem.updateMany({
+          where: { id: report.problemId },
+          data: { moderation: "hidden", needsReview: false },
+        });
+      } else if (input.action === "resolve" && report.experienceId) {
+        await tx.experience.updateMany({
+          where: { id: report.experienceId },
+          data: { moderation: "hidden", needsReview: false },
+        });
+      }
+
+      return updatedReport;
     });
 
-    await auditLog({
-      actorId: user.id,
-      action: `report.${input.action}`,
-      entityType: "ContentReport",
-      entityId: id,
-      details: {
-        targetId: report.answerId ?? report.problemId ?? report.experienceId,
-      },
-      ip,
-    });
+    if (input.action === "resolve") {
+      await recordModerationDecision({
+        moderatorId: user.id,
+        targetType:
+          report.answerId
+            ? "answer"
+            : report.problemId
+              ? "problem"
+              : "experience",
+        targetId:
+          report.answerId ?? report.problemId ?? report.experienceId ?? "",
+        action: "hide_content",
+        reason: `تأیید گزارش ${id}`,
+        note: input.note,
+        ip,
+      });
+    }
 
     return jsonOk({ status: updated.status });
   } catch (error) {

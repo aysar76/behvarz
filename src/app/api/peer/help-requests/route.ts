@@ -7,7 +7,7 @@ import { assertPermission } from "@/lib/auth/authorization";
 import { getClientIp } from "@/lib/auth/session";
 import { isRateLimited } from "@/lib/auth/rate-limit";
 import { auditLog } from "@/lib/audit";
-import { scanSensitiveContent } from "@/lib/content-safety";
+import { assertAccountCanCreate, scanContentForModeration } from "@/lib/moderation";
 import { peerHelpRequestSchema } from "@/lib/validations/peer";
 import {
   PEER_HELP_REQUEST_DETAIL_INCLUDE,
@@ -76,12 +76,17 @@ export async function POST(request: Request) {
       );
     }
 
+    assertAccountCanCreate(user);
+
     const input = validateInput(
       peerHelpRequestSchema,
       await readJsonBody<PeerHelpRequestInput>(request),
     );
 
-    const sensitive = scanSensitiveContent(input.title, input.description);
+    const sensitive = await scanContentForModeration(
+      input.title,
+      input.description,
+    );
     if (sensitive.length > 0) {
       if (input.sensitiveAcknowledged !== true) {
         throw new AppError(

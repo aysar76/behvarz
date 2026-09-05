@@ -5,10 +5,10 @@ import { AppError } from "@/lib/errors";
 import { requireUser } from "@/lib/auth/current-user";
 import { assertPermission } from "@/lib/auth/authorization";
 import { getClientIp } from "@/lib/auth/session";
-import { auditLog } from "@/lib/audit";
 import { moderationSchema } from "@/lib/validations/problem";
 import { serializeProblem, type ProblemRow } from "@/lib/serializers/problem";
 import { ANSWER_DETAIL_INCLUDE } from "@/lib/problems";
+import { recordModerationDecision } from "@/lib/moderation";
 import type { z } from "zod";
 
 type ModerationInput = z.infer<typeof moderationSchema>;
@@ -89,12 +89,18 @@ export async function POST(
       },
     });
 
-    await auditLog({
-      actorId: user.id,
-      action: `moderation.problem.${input.action}`,
-      entityType: "Problem",
-      entityId: id,
-      details: { note: input.note },
+    await recordModerationDecision({
+      moderatorId: user.id,
+      targetType: "problem",
+      targetId: id,
+      action: input.action === "hide"
+        ? "hide_content"
+        : input.action === "remove"
+          ? "remove_content"
+          : input.action === "unhide"
+            ? "unhide_content"
+            : "restore_content",
+      reason: input.note ?? undefined,
       ip,
     });
 

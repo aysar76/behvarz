@@ -6,6 +6,7 @@ import { requireUser } from "@/lib/auth/current-user";
 import { assertPermission } from "@/lib/auth/authorization";
 import { getClientIp } from "@/lib/auth/session";
 import { auditLog } from "@/lib/audit";
+import { assertAccountCanInteract } from "@/lib/moderation";
 import { followSchema } from "@/lib/validations/interaction";
 import type { z } from "zod";
 
@@ -98,6 +99,7 @@ export async function POST(request: Request) {
   try {
     const user = await requireUser();
     assertPermission(user, "interactions:follow");
+    assertAccountCanInteract(user);
 
     const input = validateInput(
       followSchema,

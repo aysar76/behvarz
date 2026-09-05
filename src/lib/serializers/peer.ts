@@ -189,3 +189,43 @@ export function serializePeerMessage(
     isMine: row.senderId === currentUserId,
   };
 }
+
+export interface PeerReportRow {
+  id: string;
+  reason: string;
+  note: string | null;
+  status: string;
+  createdAt: Date;
+  reporter: { id: string; displayName: string | null };
+  cooperation: {
+    id: string;
+    requesterId: string;
+    helperId: string;
+    requester: { displayName: string | null };
+    helper: { displayName: string | null };
+  };
+}
+
+export interface SerializedPeerReport {
+  id: string;
+  reason: string;
+  note: string | null;
+  status: string;
+  createdAt: string;
+  reporterLabel: string;
+  targetLabel: string;
+}
+
+export function serializePeerReport(
+  row: PeerReportRow,
+): SerializedPeerReport {
+  return {
+    id: row.id,
+    reason: row.reason,
+    note: row.note,
+    status: row.status,
+    createdAt: row.createdAt.toISOString(),
+    reporterLabel: row.reporter.displayName ?? "بی‌نام",
+    targetLabel: `همکاری بین «${row.cooperation.requester.displayName ?? "بی‌نام"}» و «${row.cooperation.helper.displayName ?? "بی‌نام"}»`,
+  };
+}

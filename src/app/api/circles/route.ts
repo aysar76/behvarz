@@ -7,7 +7,7 @@ import { assertPermission } from "@/lib/auth/authorization";
 import { getClientIp } from "@/lib/auth/session";
 import { isRateLimited } from "@/lib/auth/rate-limit";
 import { auditLog } from "@/lib/audit";
-import { scanSensitiveContent } from "@/lib/content-safety";
+import { assertAccountCanCreate, scanContentForModeration } from "@/lib/moderation";
 import { circleCreateSchema } from "@/lib/validations/circle";
 import { CIRCLE_MAX_CAPACITY, CIRCLE_MIN_CAPACITY } from "@/lib/constants/circle";
 import { CIRCLE_LIST_INCLUDE, getCircleRow } from "@/lib/circles";
@@ -84,6 +84,8 @@ export async function POST(request: Request) {
       );
     }
 
+    assertAccountCanCreate(user);
+
     const input = validateInput(
       circleCreateSchema,
       await readJsonBody<CircleCreateInput>(request),
@@ -94,7 +96,7 @@ export async function POST(request: Request) {
       throw new AppError("VALIDATION", "ظرفیت حلقه باید بین ۵ تا ۱۲ نفر باشد");
     }
 
-    const sensitive = scanSensitiveContent(...circleSensitiveTexts(input));
+    const sensitive = await scanContentForModeration(...circleSensitiveTexts(input));
     if (sensitive.length > 0) {
       throw new AppError(
         "VALIDATION",

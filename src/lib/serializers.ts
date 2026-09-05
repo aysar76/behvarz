@@ -18,6 +18,8 @@ export interface SerializedUser {
   visibility: string;
   onboardingCompleted: boolean;
   willingToHelp: boolean;
+  accountStatus: string;
+  accountStatusReason: string | null;
   skills: string[];
   interests: string[];
   createdAt: string;
@@ -37,6 +39,8 @@ export function serializeUser(user: UserWithProfile): SerializedUser {
     visibility: user.visibility,
     onboardingCompleted: user.onboardingCompleted,
     willingToHelp: user.willingToHelp,
+    accountStatus: user.accountStatus,
+    accountStatusReason: user.accountStatusReason,
     skills: (user.skills ?? []).map((item) => item.skill.name),
     interests: (user.interests ?? []).map((item) => item.interest.name),
     createdAt: user.createdAt.toISOString(),

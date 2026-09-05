@@ -8,6 +8,11 @@ import { cn } from "@/lib/utils";
 const adminLinks = [
   { href: "/admin/memberships", label: "تأیید عضویت‌ها" },
   { href: "/admin/moderation", label: "مدیریت محتوا" },
+  { href: "/admin/users", label: "کاربران" },
+  { href: "/admin/appeals", label: "اعتراض‌ها" },
+  { href: "/admin/sensitive-terms", label: "واژه‌های حساس" },
+  { href: "/admin/tags", label: "برچسب‌ها" },
+  { href: "/admin/decisions", label: "تاریخچه تصمیم‌ها" },
 ];
 
 export default async function AdminLayout({
@@ -27,7 +32,12 @@ export default async function AdminLayout({
         assertPermission(user, "content:moderate");
         allowed = true;
       } catch {
-        allowed = false;
+        try {
+          assertPermission(user, "moderation:users");
+          allowed = true;
+        } catch {
+          allowed = false;
+        }
       }
     }
   }
