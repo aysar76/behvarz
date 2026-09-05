@@ -22,6 +22,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
         bio: user.bio,
         visibility: user.visibility,
         onboardingCompleted: user.onboardingCompleted,
+        willingToHelp: user.willingToHelp,
         skills: [],
         interests: [],
         createdAt: user.createdAt.toISOString(),

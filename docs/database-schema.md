@@ -1,4 +1,4 @@
-# اسکیمای دیتابیس (Database Schema) — فاز ۵
+# اسکیمای دیتابیس (Database Schema) — فاز ۶
 
 **وضعیت:** به‌روزرسانی با وضعیت واقعی کد — تاریخ: مهر ۱۴۰۵
 
@@ -28,6 +28,17 @@
 | FollowTargetType     | tag، problem، experience، user                                                                  |
 | SavedTargetType      | problem، experience                                                                             |
 | ThanksTargetType     | answer، experience                                                                              |
+| CircleStatus         | active، archived                                                                                |
+| CircleMembershipRole | member، facilitator                                                                             |
+| CircleMembershipStatus | active، left، removed                                                                         |
+| CircleJoinRequestStatus | pending، approved، rejected، canceled                                                        |
+| CircleInviteStatus   | pending، accepted، declined                                                                     |
+| PeerHelpRequestStatus | open، matched، completed، closed، canceled                                                     |
+| PeerOfferStatus      | pending، accepted، rejected، withdrawn                                                          |
+| PeerOfferInitiator   | requester، helper                                                                               |
+| PeerCooperationStatus | active، completed، closed                                                                      |
+| PeerCooperationReportStatus | pending، resolved، rejected                                                             |
+| PeerCooperationReportReason | abusive، harassment، off_topic، sensitive_info، other                                   |
 
 ## مدل‌ها
 
@@ -46,6 +57,7 @@
 | bio                 | String?                 | معرفی کوتاه                                         |
 | visibility          | Visibility (members)    | تنظیم حریم خصوصی پروفایل                            |
 | onboardingCompleted | Boolean (false)         | تکمیل Onboarding                                    |
+| willingToHelp       | Boolean (false)         | تمایل به همیاری (فاز ۶؛ فقط این کاربران در پیشنهاد همیار) |
 | createdAt/updatedAt | DateTime                | زمان ثبت/به‌روزرسانی                                |
 
 ### OtpCode
@@ -311,6 +323,163 @@
 | createdAt   | DateTime         | زمان                                     |
 
 > کلید ترکیبی یکتا `[userId, targetType, targetId]` + Index روی `[targetType, targetId]`. شمارنده `thanksCount` روی `ProblemAnswer` و `Experience` نگه‌داری می‌شود. تشکر به محتوای خود کاربر ممنوع است.
+
+### Circle (فاز ۶)
+
+گروه کوچک ۵ تا ۱۲ نفره با راهبر:
+
+| فیلد          | نوع               | توضیح                        |
+| ------------- | ----------------- | ---------------------------- |
+| id            | String PK         | شناسه                        |
+| name          | String            | نام حلقه                     |
+| description   | String            | توضیح                        |
+| topic         | String?           | موضوع                        |
+| province      | String?           | استان (اختیاری)              |
+| capacity      | Int (۱۲)          | ظرفیت (۵ تا ۱۲)              |
+| status        | CircleStatus      | active/archived              |
+| facilitatorId | FK → User (Restrict) | راهبر حلقه                |
+| createdAt/updatedAt | DateTime    | زمان ثبت/به‌روزرسانی         |
+
+> Index: `[status]`، `[facilitatorId]`. خالق حلقه به‌صورت خودکار با نقش `facilitator` عضو می‌شود.
+
+### CircleMembership
+
+| فیلد    | نوع                    | توضیح            |
+| ------- | ---------------------- | ---------------- |
+| id      | String PK              | شناسه            |
+| circleId| FK → Circle (Cascade)  | حلقه             |
+| userId  | FK → User (Cascade)    | عضو              |
+| role    | CircleMembershipRole   | member/facilitator |
+| status  | CircleMembershipStatus | active/left/removed |
+| joinedAt | DateTime             | زمان عضویت       |
+| leftAt  | DateTime?              | زمان خروج        |
+
+> کلید ترکیبی یکتا `[circleId, userId]`.
+
+### CircleJoinRequest
+
+| فیلد       | نوع                    | توضیح                     |
+| ---------- | ---------------------- | ------------------------- |
+| id         | String PK              | شناسه                     |
+| circleId   | FK → Circle (Cascade)  | حلقه                      |
+| userId     | FK → User (Cascade)    | متقاضی                    |
+| message    | String?                | پیام متقاضی               |
+| status     | CircleJoinRequestStatus| pending/approved/rejected/canceled |
+| reviewedAt | DateTime?              | زمان بررسی                |
+| createdAt  | DateTime               | زمان ثبت                  |
+
+> کلید ترکیبی یکتا `[circleId, userId]`.
+
+### CircleInvite
+
+| فیلد       | نوع                 | توضیح                  |
+| ---------- | ------------------- | ---------------------- |
+| id         | String PK           | شناسه                  |
+| circleId   | FK → Circle (Cascade) | حلقه                 |
+| userId     | FK → User (Cascade) | دعوت‌شده               |
+| invitedById| FK → User (Cascade) | دعوت‌کننده (راهبر)     |
+| message    | String?             | پیام دعوت              |
+| status     | CircleInviteStatus  | pending/accepted/declined |
+| respondedAt| DateTime?           | زمان پاسخ              |
+
+> کلید ترکیبی یکتا `[circleId, userId]`. فقط راهبر می‌تواند دعوت کند.
+
+### CircleMeeting
+
+جلسه و خروجی دوره‌ای حلقه:
+
+| فیلد       | نوع                 | توضیح          |
+| ---------- | ------------------- | -------------- |
+| id         | String PK           | شناسه          |
+| circleId   | FK → Circle (Cascade) | حلقه         |
+| title      | String              | عنوان جلسه     |
+| agenda     | String?             | دستور کار      |
+| scheduledAt| DateTime?           | زمان برنامه‌ریزی |
+| summary    | String?             | خروجی/خلاصه    |
+| createdById| FK → User (Cascade) | ثبت‌کننده      |
+
+> Index: `[circleId]`.
+
+### PeerHelpRequest (فاز ۶)
+
+درخواست همیار (فرد دارای مسئله):
+
+| فیلد       | نوع                    | توضیح                     |
+| ---------- | ---------------------- | ------------------------- |
+| id         | String PK              | شناسه                     |
+| requesterId| FK → User (Cascade)   | ثبت‌کننده                 |
+| title      | String                 | عنوان                     |
+| description| String                 | شرح نیاز                  |
+| barrierType| ProblemBarrierType     | نوع مانع                  |
+| tags       | Json?                  | برچسب‌ها (متن ساده)        |
+| province   | String?                | استان                     |
+| status     | PeerHelpRequestStatus  | open/matched/completed/closed/canceled |
+| createdAt/updatedAt | DateTime      | زمان ثبت/به‌روزرسانی      |
+
+> Index: `[requesterId]`، `[status]`، `[barrierType]`. محتوای مسئله ناشناس‌سازی‌شده است (بدون داده بیمار).
+
+### PeerOffer
+
+| فیلد        | نوع                | توضیح                  |
+| ----------- | ------------------ | ---------------------- |
+| id          | String PK          | شناسه                  |
+| helpRequestId| FK → PeerHelpRequest (Cascade) | درخواست |
+| helperId    | FK → User (Cascade)| همیار                  |
+| initiator   | PeerOfferInitiator | requester/helper       |
+| message     | String?            | پیام                   |
+| status      | PeerOfferStatus    | pending/accepted/rejected/withdrawn |
+| respondedAt | DateTime?          | زمان پاسخ              |
+
+> کلید ترکیبی یکتا `[helpRequestId, helperId]`.
+
+### PeerCooperation
+
+| فیلد          | نوع                    | توضیح              |
+| ------------- | ---------------------- | ------------------ |
+| id            | String PK              | شناسه              |
+| helpRequestId | FK → PeerHelpRequest? (SetNull) | درخواست مبدا |
+| requesterId   | FK → User (Cascade)    | درخواست‌دهنده      |
+| helperId      | FK → User (Cascade)    | همیار              |
+| goal          | String?                | هدف همکاری         |
+| status        | PeerCooperationStatus  | active/completed/closed |
+| outcomeSummary| String?                | خلاصه نتیجه        |
+| requesterRating | Int?                 | ارزیابی درخواست‌دهنده (۱-۵) |
+| helperRating  | Int?                   | ارزیابی همیار (۱-۵) |
+| completedAt/closedAt | DateTime?      | زمان تکمیل/بسته‌شدن |
+| createdAt/updatedAt | DateTime       | زمان ثبت/به‌روزرسانی |
+
+> Index: `[requesterId]`، `[helperId]`، `[status]`.
+
+### PeerMessage
+
+گفت‌وگوی محدود و موضوع‌محور (Thread-Based؛ بدون Chat بلادرنگ):
+
+| فیلد         | نوع                     | توضیح      |
+| ------------ | ----------------------- | ---------- |
+| id           | String PK               | شناسه      |
+| cooperationId| FK → PeerCooperation (Cascade) | همکاری |
+| senderId     | FK → User (Cascade)     | فرستنده    |
+| body         | String                  | متن        |
+| createdAt    | DateTime                | زمان       |
+
+> Index: `[cooperationId]`.
+
+### PeerCooperationReport
+
+گزارش سوءاستفاده در همکاری:
+
+| فیلد        | نوع                              | توضیح        |
+| ----------- | -------------------------------- | ------------ |
+| id          | String PK                        | شناسه        |
+| cooperationId| FK → PeerCooperation (Cascade)  | همکاری       |
+| reporterId  | FK → User (Cascade)              | گزارش‌دهنده  |
+| reason      | PeerCooperationReportReason      | دلیل         |
+| note        | String?                          | توضیح        |
+| status      | PeerCooperationReportStatus      | pending/resolved/rejected |
+| reviewedAt  | DateTime?                        | زمان بررسی   |
+| createdAt   | DateTime                         | زمان         |
+
+> Index: `[cooperationId]`، `[status]`.
 
 ## قواعد
 

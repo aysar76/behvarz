@@ -22,6 +22,7 @@ export interface SessionUser {
   bio: string | null;
   visibility: string;
   onboardingCompleted: boolean;
+  willingToHelp: boolean;
   skills: string[];
   interests: string[];
   createdAt: string;

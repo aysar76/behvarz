@@ -17,6 +17,7 @@ export interface SerializedUser {
   bio: string | null;
   visibility: string;
   onboardingCompleted: boolean;
+  willingToHelp: boolean;
   skills: string[];
   interests: string[];
   createdAt: string;
@@ -35,6 +36,7 @@ export function serializeUser(user: UserWithProfile): SerializedUser {
     bio: user.bio,
     visibility: user.visibility,
     onboardingCompleted: user.onboardingCompleted,
+    willingToHelp: user.willingToHelp,
     skills: (user.skills ?? []).map((item) => item.skill.name),
     interests: (user.interests ?? []).map((item) => item.interest.name),
     createdAt: user.createdAt.toISOString(),

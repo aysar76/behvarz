@@ -46,6 +46,26 @@ describe("hasPermission", () => {
   it("lets admins review experiences", () => {
     expect(hasPermission("admin", "experiences:review")).toBe(true);
   });
+
+  it("lets members create circles and join circles", () => {
+    expect(hasPermission("member", "circles:create")).toBe(true);
+    expect(hasPermission("member", "circles:join")).toBe(true);
+    expect(hasPermission("member", "circles:meeting")).toBe(true);
+  });
+
+  it("denies guests circle and peer permissions", () => {
+    expect(hasPermission("guest", "circles:create")).toBe(false);
+    expect(hasPermission("guest", "circles:join")).toBe(false);
+    expect(hasPermission("guest", "peer:request")).toBe(false);
+    expect(hasPermission("guest", "peer:offer")).toBe(false);
+    expect(hasPermission("guest", "peer:cooperate")).toBe(false);
+  });
+
+  it("lets members use peer help features", () => {
+    expect(hasPermission("member", "peer:request")).toBe(true);
+    expect(hasPermission("member", "peer:offer")).toBe(true);
+    expect(hasPermission("member", "peer:cooperate")).toBe(true);
+  });
 });
 
 describe("can", () => {

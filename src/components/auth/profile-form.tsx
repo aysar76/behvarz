@@ -33,6 +33,7 @@ export function ProfileForm({ user }: { user: SessionUser }) {
   const [visibility, setVisibility] = useState<
     "public" | "members" | "private"
   >(user.visibility as "public" | "members" | "private");
+  const [willingToHelp, setWillingToHelp] = useState(user.willingToHelp);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -72,6 +73,7 @@ export function ProfileForm({ user }: { user: SessionUser }) {
           interests,
           bio: bio.trim(),
           visibility,
+          willingToHelp,
         }),
       });
       const body = (await res.json()) as {
@@ -206,6 +208,31 @@ export function ProfileForm({ user }: { user: SessionUser }) {
           onChange={(event) => setBio(event.target.value)}
         />
       </div>
+
+      <label
+        htmlFor="willingToHelp"
+        className={cn(
+          "border-border flex cursor-pointer items-start gap-3 rounded-lg border p-3",
+          willingToHelp && "border-primary bg-brand-50",
+        )}
+      >
+        <input
+          id="willingToHelp"
+          type="checkbox"
+          checked={willingToHelp}
+          onChange={(event) => setWillingToHelp(event.target.checked)}
+          className="accent-brand-600 mt-1"
+        />
+        <span>
+          <span className="text-foreground block text-sm font-medium">
+            تمایل به همیاری با همکاران
+          </span>
+          <span className="text-muted-foreground block text-xs">
+            اگر فعال کنید، در «درخواست همیار» به‌عنوان همیارِ مرتبط پیشنهاد
+            داده می‌شوید. بدون این گزینه در هیچ‌جا معرفی نمی‌شوید.
+          </span>
+        </span>
+      </label>
 
       <fieldset className="space-y-2">
         <legend className="text-foreground block text-sm font-medium">

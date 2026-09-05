@@ -117,6 +117,79 @@ enum ThanksTargetType {
   experience
 }
 
+// NOTE (فاز ۶): حلقه‌های همیار.
+// حلقه‌ها گروه‌های کوچک (۵ تا ۱۲ نفره) و «درخواست همیار» جفت‌سازی دونفره است.
+// هیچ داده بیمار در مدل داده وجود ندارد (رجوع به docs/data-privacy-rules.md).
+
+enum CircleStatus {
+  active
+  archived
+}
+
+enum CircleMembershipRole {
+  member
+  facilitator
+}
+
+enum CircleMembershipStatus {
+  active
+  left
+  removed
+}
+
+enum CircleJoinRequestStatus {
+  pending
+  approved
+  rejected
+  canceled
+}
+
+enum CircleInviteStatus {
+  pending
+  accepted
+  declined
+}
+
+enum PeerHelpRequestStatus {
+  open
+  matched
+  completed
+  closed
+  canceled
+}
+
+enum PeerOfferStatus {
+  pending
+  accepted
+  rejected
+  withdrawn
+}
+
+enum PeerOfferInitiator {
+  requester
+  helper
+}
+
+enum PeerCooperationStatus {
+  active
+  completed
+  closed
+}
+
+enum PeerCooperationReportStatus {
+  pending
+  resolved
+  rejected
+}
+
+enum PeerCooperationReportReason {
+  abusive
+  harassment
+  off_topic
+  sensitive_info
+  other
+}
+
 model User {
   id                  String           @id @default(cuid())
   phone               String           @unique
@@ -129,6 +202,7 @@ model User {
   bio                 String?
   visibility          Visibility       @default(members)
   onboardingCompleted Boolean          @default(false)
+  willingToHelp       Boolean          @default(false)
   createdAt           DateTime         @default(now())
   updatedAt           DateTime         @updatedAt
 
@@ -147,6 +221,18 @@ model User {
   savedItems         SavedItem[]
   thanks             ProfessionalThanks[]
   thanksReceived     ProfessionalThanks[] @relation("thanksReceived")
+  circleFacilitator  Circle[]              @relation("circleFacilitator")
+  circleMemberships  CircleMembership[]
+  circleJoinRequests CircleJoinRequest[]
+  circleInvitee      CircleInvite[]        @relation("circleInvitee")
+  circleInviter      CircleInvite[]        @relation("circleInviter")
+  circleMeetings     CircleMeeting[]
+  peerHelpRequests   PeerHelpRequest[]     @relation("peerRequester")
+  peerOffers         PeerOffer[]
+  peerCooperationsR  PeerCooperation[]     @relation("peerCooperationRequester")
+  peerCooperationsH  PeerCooperation[]     @relation("peerCooperationHelper")
+  peerMessages       PeerMessage[]
+  peerReports        PeerCooperationReport[]
 }
 
 model Problem {
@@ -399,6 +485,194 @@ model ContentReport {
   @@index([problemId])
   @@index([answerId])
   @@index([experienceId])
+}
+
+// NOTE (فاز ۶): حلقه همیار — گروه کوچک ۵ تا ۱۲ نفره با راهبر (facilitator).
+model Circle {
+  id            String       @id @default(cuid())
+  name          String
+  description   String
+  topic         String?
+  province      String?
+  capacity      Int          @default(12)
+  status        CircleStatus @default(active)
+  facilitatorId String
+  facilitator   User         @relation("circleFacilitator", fields: [facilitatorId], references: [id], onDelete: Restrict)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  memberships  CircleMembership[]
+  joinRequests CircleJoinRequest[]
+  invites      CircleInvite[]
+  meetings     CircleMeeting[]
+
+  @@index([status])
+  @@index([facilitatorId])
+}
+
+model CircleMembership {
+  id       String                 @id @default(cuid())
+  circleId String
+  circle   Circle                 @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role     CircleMembershipRole   @default(member)
+  status   CircleMembershipStatus @default(active)
+  joinedAt DateTime               @default(now())
+  leftAt   DateTime?
+
+  @@unique([circleId, userId])
+  @@index([circleId])
+  @@index([userId])
+}
+
+model CircleJoinRequest {
+  id         String                 @id @default(cuid())
+  circleId   String
+  circle     Circle                 @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  message    String?
+  status     CircleJoinRequestStatus @default(pending)
+  reviewedAt DateTime?
+  createdAt  DateTime               @default(now())
+
+  @@unique([circleId, userId])
+  @@index([circleId])
+  @@index([userId])
+  @@index([status])
+}
+
+model CircleInvite {
+  id          String             @id @default(cuid())
+  circleId    String
+  circle      Circle             @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User               @relation("circleInvitee", fields: [userId], references: [id], onDelete: Cascade)
+  invitedById String
+  invitedBy   User               @relation("circleInviter", fields: [invitedById], references: [id], onDelete: Cascade)
+  message     String?
+  status      CircleInviteStatus @default(pending)
+  createdAt   DateTime           @default(now())
+  respondedAt DateTime?
+
+  @@unique([circleId, userId])
+  @@index([circleId])
+  @@index([userId])
+  @@index([status])
+}
+
+// جلسه و خروجی دوره‌ای حلقه.
+model CircleMeeting {
+  id          String   @id @default(cuid())
+  circleId    String
+  circle      Circle   @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  title       String
+  agenda      String?
+  scheduledAt DateTime?
+  summary     String?
+  createdById String
+  createdBy   User     @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([circleId])
+}
+
+// NOTE (فاز ۶): درخواست همیار — فرد دارای مسئله، همیار مرتبط با تجربه مشابه می‌خواهد.
+// برچسب‌ها به‌صورت Json ذخیره می‌شوند؛ محتوای مسئله ناشناس‌سازی‌شده است (بدون داده بیمار).
+model PeerHelpRequest {
+  id          String                @id @default(cuid())
+  requesterId String
+  requester   User                  @relation("peerRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  title       String
+  description String
+  barrierType ProblemBarrierType    @default(other)
+  tags        Json?
+  province    String?
+  status      PeerHelpRequestStatus @default(open)
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+
+  offers       PeerOffer[]
+  cooperations PeerCooperation[]
+
+  @@index([requesterId])
+  @@index([status])
+  @@index([barrierType])
+}
+
+model PeerOffer {
+  id            String            @id @default(cuid())
+  helpRequestId String
+  helpRequest   PeerHelpRequest   @relation(fields: [helpRequestId], references: [id], onDelete: Cascade)
+  helperId      String
+  helper        User              @relation(fields: [helperId], references: [id], onDelete: Cascade)
+  initiator     PeerOfferInitiator
+  message       String?
+  status        PeerOfferStatus   @default(pending)
+  createdAt     DateTime          @default(now())
+  respondedAt   DateTime?
+
+  @@unique([helpRequestId, helperId])
+  @@index([helpRequestId])
+  @@index([helperId])
+  @@index([status])
+}
+
+model PeerCooperation {
+  id              String                  @id @default(cuid())
+  helpRequestId   String?
+  helpRequest     PeerHelpRequest?        @relation(fields: [helpRequestId], references: [id], onDelete: SetNull)
+  requesterId     String
+  requester       User                    @relation("peerCooperationRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  helperId        String
+  helper          User                    @relation("peerCooperationHelper", fields: [helperId], references: [id], onDelete: Cascade)
+  goal            String?
+  status          PeerCooperationStatus   @default(active)
+  outcomeSummary  String?
+  requesterRating Int?
+  helperRating    Int?
+  completedAt     DateTime?
+  closedAt        DateTime?
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+
+  messages PeerMessage[]
+  reports  PeerCooperationReport[]
+
+  @@index([requesterId])
+  @@index([helperId])
+  @@index([status])
+}
+
+// گفت‌وگوی محدود و موضوع‌محور (Thread-Based؛ بدون Chat بلادرنگ در MVP).
+model PeerMessage {
+  id            String          @id @default(cuid())
+  cooperationId String
+  cooperation   PeerCooperation @relation(fields: [cooperationId], references: [id], onDelete: Cascade)
+  senderId      String
+  sender        User            @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  body          String
+  createdAt     DateTime        @default(now())
+
+  @@index([cooperationId])
+}
+
+model PeerCooperationReport {
+  id            String                       @id @default(cuid())
+  cooperationId String
+  cooperation   PeerCooperation              @relation(fields: [cooperationId], references: [id], onDelete: Cascade)
+  reporterId    String
+  reporter      User                         @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+  reason        PeerCooperationReportReason
+  note          String?
+  status        PeerCooperationReportStatus  @default(pending)
+  reviewedAt    DateTime?
+  createdAt     DateTime                     @default(now())
+
+  @@index([cooperationId])
+  @@index([status])
 }
 
 model OtpCode {

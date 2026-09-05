@@ -39,6 +39,7 @@ export const profileSchema = z.object({
     .max(MAX_SELECTABLE, `حداکثر ${MAX_SELECTABLE} علاقه‌مندی`),
   bio: z.string().trim().max(300, "معرفی حداکثر ۳۰۰ کاراکتر").optional(),
   visibility: z.enum(["public", "members", "private"]),
+  willingToHelp: z.boolean().optional(),
 });
 
 export const membershipRequestSchema = z.object({

@@ -46,7 +46,14 @@ export type Permission =
   | "experiences:report"
   | "experiences:review"
   | "content:moderate"
-  | "reports:review";
+  | "reports:review"
+  | "circles:create"
+  | "circles:join"
+  | "circles:manage"
+  | "circles:meeting"
+  | "peer:request"
+  | "peer:offer"
+  | "peer:cooperate";
 
 const CONTENT_PERMISSIONS: readonly Permission[] = [
   "interactions:follow",
@@ -63,6 +70,13 @@ const CONTENT_PERMISSIONS: readonly Permission[] = [
   "experiences:reuse",
   "experiences:archive",
   "experiences:report",
+  "circles:create",
+  "circles:join",
+  "circles:manage",
+  "circles:meeting",
+  "peer:request",
+  "peer:offer",
+  "peer:cooperate",
 ];
 
 const MODERATION_PERMISSIONS: readonly Permission[] = [

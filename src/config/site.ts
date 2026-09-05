@@ -15,6 +15,6 @@ export const mainNav: NavItem[] = [
   { label: "اتاق مسئله", href: "/problems" },
   { label: "بانک تجربه", href: "/experiences" },
   { label: "خوراک حرفه‌ای", href: "/feed" },
-  { label: "حلقه‌های همیار", href: "/circles", disabled: true },
+  { label: "حلقه‌های همیار", href: "/circles" },
   { label: "پروفایل", href: "/me" },
 ];

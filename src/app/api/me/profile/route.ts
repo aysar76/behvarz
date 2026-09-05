@@ -94,6 +94,7 @@ export async function PATCH(request: Request) {
         workYears: input.workYears,
         bio: input.bio ?? null,
         visibility: input.visibility,
+        willingToHelp: input.willingToHelp ?? false,
         onboardingCompleted: true,
       },
       include: {

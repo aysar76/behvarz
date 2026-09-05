@@ -1,6 +1,6 @@
 # معماری فعلی (Current Architecture)
 
-**وضعیت:** به‌روزرسانی برای فاز ۵ — تاریخ: مهر ۱۴۰۵
+**وضعیت:** به‌روزرسانی برای فاز ۶ — تاریخ: مهر ۱۴۰۵
 
 ## وضعیت واقعی مخزن
 
@@ -60,6 +60,17 @@
 - **حالت تعامل در Serializerها:** `serializeProblem`/`serializeExperience` گزینه‌های `savedSet`/`followedSet`/`followedTags`/`thankedIds` می‌گیرند؛ API ها و صفحه‌های سرور از `getInteractionState(userId)` استفاده می‌کنند.
 - **RBAC:** مجوزهای جدید `interactions:follow`، `interactions:save`، `interactions:thanks`، `profile:read:other` برای اعضا.
 - **Audit Log:** `interaction.follow/unfollow`، `interaction.save/unsave`، `interaction.thanks/unthanks`.
+
+## معماری حلقه‌های همیار (فاز ۶)
+
+- **مدل داده:** `Circle` (گروه کوچک ۵-۱۲ نفره با راهبر)، `CircleMembership`، `CircleJoinRequest`، `CircleInvite`، `CircleMeeting` (جلسه/خروجی دوره‌ای)، `PeerHelpRequest` (درخواست همیار)، `PeerOffer` (پیشنهاد همیاری)، `PeerCooperation` (همکاری دونفره)، `PeerMessage` (گفت‌وگوی محدود Thread-Based)، `PeerCooperationReport` (گزارش سوءاستفاده) + فیلد `willingToHelp` روی `User`. بدون Chat بلادرنگ/WebSocket در MVP.
+- **درخواست همیار:** ثبت مسئله با نوع مانع/برچسب/استان؛ **جفت‌سازی قابل توضیح** (`suggestHelpers` در `src/lib/peer.ts`) بر اساس: تمایل به همیاری + تجربه/برچسب هم‌تراز + مهارت/علاقه مرتبط + استان همسان + کیفیت همکاری‌های قبلی (رتبه ≥ ۴) + عضو تأییدشده — بدون Popularity. فقط کاندیدهای `willingToHelp` با `visibility ≠ private` و `onboardingCompleted`.
+- **پیشنهاد و همکاری:** همیار پیشنهاد می‌دهد یا درخواست‌دهنده دعوت می‌کند (`PeerOffer` با کلید یکتا `[helpRequestId, helperId]`)؛ پذیرش/رد/پس‌گرفتن؛ همکاری با هدف، گفت‌وگوی محدود، ثبت خلاصه نتیجه/خاتمه، ارزیابی سودمندی دوطرفه (۱-۵) و گزارش سوءاستفاده.
+- **حلقه‌ها:** ایجاد (خالق = راهبر)، درخواست عضویت/دعوت/تأیید با کنترل ظرفیت، صفحه حلقه (`/circles/[id]`)، جلسات، خروج، انتقال راهبری، آرشیو. عملیات راهبری با `assertCircleFacilitator` سمت سرور محدود می‌شود.
+- **حالت تعامل در Serializerها:** `serializeCircle` (isMember/isFacilitator/myJoinRequest/myInvite)، `serializePeerHelpRequest` (isRequester، offers/isMine)، `serializePeerCooperation`.
+- **امنیت محتوا:** `scanSensitiveContent` روی نام/توضیح/موضوع حلقه و عنوان/شرح درخواست همیار؛ Rate Limit برای ایجاد حلقه (۵/ساعت) و پیشنهاد همیار (۱۵/ساعت).
+- **RBAC:** مجوزهای جدید `circles:create/join/manage/meeting` و `peer:request/offer/cooperate` برای اعضا.
+- **Audit Log:** `circle.create/archive/transfer`، `peer.offer.requester/helper`، `peer.help-request.cancel`، `peer.cooperation.goal` و غیره.
 
 ## محدودیت‌ها و مفروضات
 
