@@ -1,0 +1,18 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// NOTE (فاز ۱): این اسکیما «پیش‌نویس پایه» است و در فاز ۲ (هویت و پروفایل)
+// به‌صورت کامل بازبینی و گسترش می‌یابد. هیچ داده بیمار در مدل داده وجود ندارد.
+model User {
+  id           String    @id @default(cuid())
+  phone        String    @unique
+  displayName  String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
