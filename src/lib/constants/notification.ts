@@ -14,6 +14,8 @@ export const NOTIFICATION_TYPE_LABELS: Record<NotificationType, string> = {
   cooperation_message: "پیام همیاری",
   cooperation_complete: "تکمیل همکاری",
   appeal_decision: "نتیجه اعتراض",
+  budget_proposal_reviewed: "نتیجه بررسی پیشنهاد بودجه",
+  benefit_report_resolved: "نتیجه گزارش مزیت",
 };
 
 export const NOTIFICATION_TARGET_LABELS: Record<NotificationTargetType, string> = {
@@ -23,6 +25,8 @@ export const NOTIFICATION_TARGET_LABELS: Record<NotificationTargetType, string> 
   circle: "حلقه",
   cooperation: "همکاری",
   appeal: "اعتراض",
+  budget_proposal: "پیشنهاد بودجه",
+  benefit_provider: "ارائه‌دهنده مزیت",
 };
 
 export const NOTIFICATION_TYPES: NotificationType[] = [
@@ -36,4 +40,6 @@ export const NOTIFICATION_TYPES: NotificationType[] = [
   "cooperation_message",
   "cooperation_complete",
   "appeal_decision",
+  "budget_proposal_reviewed",
+  "benefit_report_resolved",
 ];

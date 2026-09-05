@@ -7,7 +7,7 @@ export interface NotificationInput {
   actorId?: string | null;
   title: string;
   body?: string | null;
-  targetType?: "problem" | "answer" | "experience" | "circle" | "cooperation" | "appeal";
+  targetType?: "problem" | "answer" | "experience" | "circle" | "cooperation" | "appeal" | "budget_proposal" | "benefit_provider";
   targetId?: string | null;
 }
 

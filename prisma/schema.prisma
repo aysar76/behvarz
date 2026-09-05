@@ -290,6 +290,12 @@ model User {
   lessonProgress      LessonProgress[]         @relation("lessonProgressUser")
   quizAttempts        QuizAttempt[]            @relation("quizAttemptUser")
   fieldApplications   FieldApplication[]       @relation("fieldApplicationUser")
+  benefitProviders    BenefitProvider[]        @relation("benefitProviderCreator")
+  benefitUsages       BenefitUsage[]           @relation("benefitUsageUser")
+  benefitReports      BenefitReport[]          @relation("benefitReportUser")
+  budgetProposals     BudgetProposal[]         @relation("budgetProposalAuthor")
+  budgetProposalVotes BudgetProposalVote[]     @relation("budgetProposalVoteUser")
+  budgetImplementations BudgetImplementation[] @relation("budgetImplementationReporter")
 }
 
 model Problem {
@@ -889,6 +895,8 @@ enum NotificationType {
   cooperation_message
   cooperation_complete
   appeal_decision
+  budget_proposal_reviewed
+  benefit_report_resolved
 }
 
 enum NotificationTargetType {
@@ -898,6 +906,8 @@ enum NotificationTargetType {
   circle
   cooperation
   appeal
+  budget_proposal
+  benefit_provider
 }
 
 model Notification {
@@ -1104,4 +1114,174 @@ model CourseTag {
 
   @@id([courseId, tagId])
   @@index([tagId])
+}
+
+// NOTE (فاز ۱۲): باشگاه مزایا و مشارکت.
+// فهرست ارائه‌دهندگان تأییدشده، ثبت استفاده غیرحساس، گزارش مشکل، امتیاز رضایت و
+// بودجه‌ریزی مشارکتی (گام اولیه). ممنوعیت: فروشگاه عمومی، کیف پول، سیستم مالی پیچیده و
+// خرید امتیاز. بدون فروش داده و بدون داده بیمار (رجوع به docs/data-privacy-rules.md).
+
+enum BenefitProviderStatus {
+  draft
+  approved
+  archived
+}
+
+enum BenefitProviderCategory {
+  health
+  education
+  equipment
+  insurance
+  transport
+  telecom
+  retail
+  other
+}
+
+enum BenefitReportReason {
+  issue_service
+  misleading
+  sensitive_info
+  complaint
+  other
+}
+
+enum BenefitReportStatus {
+  pending
+  resolved
+  rejected
+}
+
+enum BudgetProposalStatus {
+  draft
+  under_review
+  approved
+  rejected
+  voting
+  implemented
+  closed
+}
+
+enum BudgetProposalCategory {
+  equipment
+  training
+  community
+  infrastructure
+  other
+}
+
+// ارائه‌دهنده مزیت (تأییدشده توسط مدیر). `isSponsored` برای تفکیک شفاف اسپانسر
+// از محتوای حرفه‌ای است. هیچ اطلاعات تماس شخصی عضو ذخیره نمی‌شود.
+model BenefitProvider {
+  id           String                   @id @default(cuid())
+  name         String
+  category     BenefitProviderCategory  @default(other)
+  description  String
+  terms        String
+  website      String?
+  contactNote  String?
+  logoEmoji    String?
+  isSponsored  Boolean                  @default(false)
+  status       BenefitProviderStatus    @default(draft)
+  createdById  String
+  createdBy    User                     @relation("benefitProviderCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  publishedAt  DateTime?
+  createdAt    DateTime                 @default(now())
+  updatedAt    DateTime                 @updatedAt
+
+  usages  BenefitUsage[]
+  reports BenefitReport[]
+
+  @@index([status])
+  @@index([category])
+  @@index([createdById])
+}
+
+// ثبت استفاده غیرحساس از یک مزیت + امتیاز رضایت. بدون اطلاعات حساس/مالی.
+model BenefitUsage {
+  id         String   @id @default(cuid())
+  providerId String
+  provider   BenefitProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation("benefitUsageUser", fields: [userId], references: [id], onDelete: Cascade)
+  note       String?
+  satisfaction Int    @default(5)
+  createdAt  DateTime @default(now())
+
+  @@index([providerId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+// گزارش مشکل از ارائه‌دهنده یا مزیت (رسیدگی توسط مدیر).
+model BenefitReport {
+  id          String              @id @default(cuid())
+  providerId  String
+  provider    BenefitProvider     @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  reporterId  String
+  reporter    User                @relation("benefitReportUser", fields: [reporterId], references: [id], onDelete: Cascade)
+  reason      BenefitReportReason
+  note        String?
+  status      BenefitReportStatus @default(pending)
+  reviewedBy  String?
+  reviewedAt  DateTime?
+  moderatorNote String?
+  createdAt   DateTime            @default(now())
+
+  @@index([status])
+  @@index([providerId])
+  @@index([reporterId])
+}
+
+// پیشنهاد بودجه مشارکتی (گام اولیه). رأی‌ها جداگانه و قابل ممیزی ذخیره می‌شوند.
+model BudgetProposal {
+  id          String                @id @default(cuid())
+  authorId    String
+  author      User                  @relation("budgetProposalAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  title       String
+  description String
+  category    BudgetProposalCategory @default(other)
+  amountEstimate String?
+  status      BudgetProposalStatus  @default(draft)
+  reviewedBy  String?
+  reviewedAt  DateTime?
+  implementedAt DateTime?
+  closedAt    DateTime?
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+
+  votes           BudgetProposalVote[]
+  implementations BudgetImplementation[]
+
+  @@index([status])
+  @@index([authorId])
+  @@index([category])
+}
+
+// رأی واجدین شرایط (هر کاربر یک رأی برای هر پیشنهاد). قابل ممیزی.
+model BudgetProposalVote {
+  id         String         @id @default(cuid())
+  proposalId String
+  proposal   BudgetProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User           @relation("budgetProposalVoteUser", fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime       @default(now())
+
+  @@unique([proposalId, userId])
+  @@index([proposalId])
+  @@index([userId])
+}
+
+// گزارش اجرا و هزینه (قابل ممیزی). `expenses` به‌صورت Json بدون داده حساس.
+model BudgetImplementation {
+  id            String         @id @default(cuid())
+  proposalId    String
+  proposal      BudgetProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  summary       String
+  expenses      Json?
+  reportedById  String
+  reportedBy    User           @relation("budgetImplementationReporter", fields: [reportedById], references: [id], onDelete: Cascade)
+  createdAt     DateTime       @default(now())
+
+  @@index([proposalId])
 }

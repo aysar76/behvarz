@@ -61,7 +61,11 @@ export type Permission =
   | "tags:manage"
   | "academy:read"
   | "academy:learn"
-  | "academy:manage";
+  | "academy:manage"
+  | "benefits:read"
+  | "benefits:use"
+  | "benefits:propose"
+  | "benefits:manage";
 
 const CONTENT_PERMISSIONS: readonly Permission[] = [
   "interactions:follow",
@@ -87,6 +91,9 @@ const CONTENT_PERMISSIONS: readonly Permission[] = [
   "peer:cooperate",
   "academy:read",
   "academy:learn",
+  "benefits:read",
+  "benefits:use",
+  "benefits:propose",
 ];
 
 const MODERATION_PERMISSIONS: readonly Permission[] = [
@@ -103,6 +110,7 @@ const ADMIN_PERMISSIONS: readonly Permission[] = [
   "moderation:decisions",
   "tags:manage",
   "academy:manage",
+  "benefits:manage",
 ];
 
 const PERMISSIONS_BY_ROLE: Record<Role, readonly Permission[]> = {

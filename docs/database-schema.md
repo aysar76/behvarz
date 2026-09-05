@@ -1,4 +1,4 @@
-# اسکیمای دیتابیس (Database Schema) — فاز ۸
+# اسکیمای دیتابیس (Database Schema) — فاز ۱۲
 
 **وضعیت:** به‌روزرسانی با وضعیت واقعی کد — تاریخ: مهر ۱۴۰۵
 
@@ -44,6 +44,19 @@
 | ModerationAction            | warn، restrict، suspend، lift، hide_content، unhide_content، remove_content، restore_content |
 | AppealStatus                | pending، approved، rejected                                                             |
 | AppealTargetType            | problem، answer، experience، account                                                     |
+| CourseLevel                 | beginner، intermediate، advanced                                                         |
+| CourseStatus                | draft، published، archived                                                               |
+| LessonContentType           | text، audio، video                                                                       |
+| LessonProgressStatus        | not_started، in_progress، completed                                                      |
+| FieldApplicationOutcome     | successful، partial، unsuccessful                                                        |
+| NotificationType            | problem_answer، answer_mention، solution_selected، circle_join_accepted، circle_invite، circle_meeting، cooperation_offer، cooperation_message، cooperation_complete، appeal_decision، budget_proposal_reviewed، benefit_report_resolved |
+| NotificationTargetType      | problem، answer، experience، circle، cooperation، appeal، budget_proposal، benefit_provider |
+| BenefitProviderStatus       | draft، approved، archived                                                               |
+| BenefitProviderCategory     | health، education، equipment، insurance، transport، telecom، retail، other              |
+| BenefitReportReason         | issue_service، misleading، sensitive_info، complaint، other                             |
+| BenefitReportStatus         | pending، resolved، rejected                                                             |
+| BudgetProposalStatus        | draft، under_review، approved، rejected، voting، implemented، closed                    |
+| BudgetProposalCategory      | equipment، training، community، infrastructure، other                                   |
 
 ## مدل‌ها
 
@@ -704,6 +717,111 @@
 | tagId  | FK → Tag (Cascade)   | برچسب |
 
 > PK مرکب: `[courseId, tagId]`.
+
+### BenefitProvider (فاز ۱۲)
+
+ارائه‌دهنده مزیت (تأییدشده توسط مدیر). `isSponsored` برای تفکیک شفاف اسپانسر از محتوای حرفه‌ای است.
+
+| فیلد         | نوع                       | توضیح                       |
+| ------------ | ------------------------- | --------------------------- |
+| id           | String PK (cuid)          | شناسه                       |
+| name         | String                    | نام ارائه‌دهنده             |
+| category     | BenefitProviderCategory   | دسته‌بندی خدمات             |
+| description  | String                    | توضیح                       |
+| terms        | String                    | شرایط استفاده               |
+| website      | String?                   | وب‌سایت                     |
+| contactNote  | String?                   | نکته تماس                   |
+| logoEmoji    | String?                   | نماد                        |
+| isSponsored  | Boolean (false)           | تفکیک اسپانسر               |
+| status       | BenefitProviderStatus     | draft/approved/archived     |
+| createdById  | FK → User (Cascade)       | ایجادکننده                  |
+| publishedAt  | DateTime?                 | زمان تأیید                  |
+| createdAt/updatedAt | DateTime          | زمان‌ها                     |
+
+> Index: `[status]`، `[category]`، `[createdById]`.
+
+### BenefitUsage (فاز ۱۲)
+
+ثبت استفاده غیرحساس از مزیت + امتیاز رضایت:
+
+| فیلد         | نوع                        | توضیح                       |
+| ------------ | -------------------------- | --------------------------- |
+| id           | String PK (cuid)           | شناسه                       |
+| providerId   | FK → BenefitProvider (Cascade) | ارائه‌دهنده             |
+| userId       | FK → User (Cascade)        | کاربر                       |
+| note         | String?                    | یادداشت غیرحساس             |
+| satisfaction | Int (default 5)            | امتیاز رضایت ۱ تا ۵         |
+| createdAt    | DateTime                   | زمان                        |
+
+> Index: `[providerId]`، `[userId]`، `[createdAt]`.
+
+### BenefitReport (فاز ۱۲)
+
+گزارش مشکل از ارائه‌دهنده/مزیت (رسیدگی توسط مدیر):
+
+| فیلد          | نوع                      | توضیح                       |
+| ------------- | ------------------------ | --------------------------- |
+| id            | String PK (cuid)         | شناسه                       |
+| providerId    | FK → BenefitProvider (Cascade) | ارائه‌دهنده           |
+| reporterId    | FK → User (Cascade)      | گزارش‌دهنده                 |
+| reason        | BenefitReportReason      | دلیل گزارش                  |
+| note          | String?                  | توضیح                       |
+| status        | BenefitReportStatus      | pending/resolved/rejected   |
+| reviewedBy    | String?                  | ناظر رسیدگی‌کننده           |
+| reviewedAt    | DateTime?                | زمان رسیدگی                 |
+| moderatorNote | String?                  | یادداشت ناظر                |
+| createdAt     | DateTime                 | زمان                        |
+
+> Index: `[status]`، `[providerId]`، `[reporterId]`.
+
+### BudgetProposal (فاز ۱۲)
+
+پیشنهاد بودجه مشارکتی (گام اولیه):
+
+| فیلد            | نوع                     | توضیح                          |
+| --------------- | ----------------------- | ------------------------------ |
+| id              | String PK (cuid)        | شناسه                          |
+| authorId        | FK → User (Cascade)     | پیشنهاددهنده                   |
+| title           | String                  | عنوان                          |
+| description     | String                  | شرح                            |
+| category        | BudgetProposalCategory  | دسته‌بندی                       |
+| amountEstimate  | String?                 | برآورد هزینه                   |
+| status          | BudgetProposalStatus    | draft/under_review/...         |
+| reviewedBy      | String?                 | ناظر بررسی‌کننده               |
+| reviewedAt      | DateTime?               | زمان بررسی                     |
+| implementedAt   | DateTime?               | زمان اجرا                      |
+| closedAt        | DateTime?               | زمان بسته‌شدن                  |
+| createdAt/updatedAt | DateTime          | زمان‌ها                        |
+
+> Index: `[status]`، `[authorId]`، `[category]`.
+
+### BudgetProposalVote (فاز ۱۲)
+
+رأی واجدین شرایط (هر کاربر یک رأی برای هر پیشنهاد — قابل ممیزی):
+
+| فیلد        | نوع                        | توضیح            |
+| ----------- | -------------------------- | ---------------- |
+| id          | String PK (cuid)           | شناسه            |
+| proposalId  | FK → BudgetProposal (Cascade) | پیشنهاد      |
+| userId      | FK → User (Cascade)        | رأی‌دهنده        |
+| createdAt   | DateTime                   | زمان رأی          |
+
+> UNIQUE: `[proposalId, userId]`. Index: `[proposalId]`، `[userId]`.
+
+### BudgetImplementation (فاز ۱۲)
+
+گزارش اجرا و هزینه (قابل ممیزی):
+
+| فیلد        | نوع                        | توضیح            |
+| ----------- | -------------------------- | ---------------- |
+| id          | String PK (cuid)           | شناسه            |
+| proposalId  | FK → BudgetProposal (Cascade) | پیشنهاد      |
+| summary     | String                    | خلاصه اجرا        |
+| expenses    | Json?                     | ردیف‌های هزینه     |
+| reportedById| FK → User (Cascade)      | گزارش‌دهنده       |
+| createdAt   | DateTime                   | زمان              |
+
+> Index: `[proposalId]`.
 
 ## قواعد
 

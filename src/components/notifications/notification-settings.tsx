@@ -27,6 +27,8 @@ const ORDER: NotificationType[] = [
   "cooperation_message",
   "cooperation_complete",
   "appeal_decision",
+  "budget_proposal_reviewed",
+  "benefit_report_resolved",
 ];
 
 export function NotificationSettings() {

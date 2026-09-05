@@ -26,10 +26,13 @@ describe("extractMentionNames", () => {
 
 describe("notification type labels", () => {
   it("covers all notification types", () => {
-    expect(Object.keys(NOTIFICATION_TYPE_LABELS).length).toBe(10);
+    expect(Object.keys(NOTIFICATION_TYPE_LABELS).length).toBe(12);
     expect(NOTIFICATION_TYPE_LABELS.problem_answer).toBe("پاسخ به مسئله");
     expect(NOTIFICATION_TYPE_LABELS.solution_selected).toBe(
       "انتخاب راهکار شما",
+    );
+    expect(NOTIFICATION_TYPE_LABELS.budget_proposal_reviewed).toBe(
+      "نتیجه بررسی پیشنهاد بودجه",
     );
   });
 });

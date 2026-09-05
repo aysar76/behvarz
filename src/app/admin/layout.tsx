@@ -14,6 +14,8 @@ const adminLinks = [
   { href: "/admin/tags", label: "برچسب‌ها" },
   { href: "/admin/decisions", label: "تاریخچه تصمیم‌ها" },
   { href: "/admin/academy", label: "آکادمی" },
+  { href: "/admin/benefits", label: "باشگاه مزایا" },
+  { href: "/admin/budget", label: "بودجه مشارکتی" },
 ];
 
 export default async function AdminLayout({

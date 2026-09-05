@@ -18,7 +18,7 @@ interface SerializedNotification {
   actorLabel: string | null;
   title: string;
   body: string | null;
-  targetType: "problem" | "answer" | "experience" | "circle" | "cooperation" | "appeal" | null;
+  targetType: "problem" | "answer" | "experience" | "circle" | "cooperation" | "appeal" | "budget_proposal" | "benefit_provider" | null;
   targetId: string | null;
   read: boolean;
   createdAt: string;
@@ -46,6 +46,12 @@ function targetHref(item: SerializedNotification): string | null {
   }
   if (item.targetType === "appeal") {
     return "/appeals";
+  }
+  if (item.targetType === "budget_proposal") {
+    return "/budget";
+  }
+  if (item.targetType === "benefit_provider") {
+    return "/benefits";
   }
   if (item.targetType === "answer" && item.problem) {
     return `/problems/${item.problem.id}`;

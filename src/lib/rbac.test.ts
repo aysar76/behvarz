@@ -107,6 +107,25 @@ describe("hasPermission", () => {
     expect(hasPermission("guest", "academy:read")).toBe(false);
     expect(hasPermission("guest", "academy:learn")).toBe(false);
   });
+
+  it("lets members use the benefits club", () => {
+    expect(hasPermission("member", "benefits:read")).toBe(true);
+    expect(hasPermission("member", "benefits:use")).toBe(true);
+    expect(hasPermission("member", "benefits:propose")).toBe(true);
+    expect(hasPermission("member", "benefits:manage")).toBe(false);
+  });
+
+  it("lets admins manage benefits", () => {
+    expect(hasPermission("admin", "benefits:manage")).toBe(true);
+    expect(hasPermission("super_admin", "benefits:manage")).toBe(true);
+    expect(hasPermission("content_moderator", "benefits:manage")).toBe(false);
+  });
+
+  it("denies guests benefits access", () => {
+    expect(hasPermission("guest", "benefits:read")).toBe(false);
+    expect(hasPermission("guest", "benefits:use")).toBe(false);
+    expect(hasPermission("guest", "benefits:propose")).toBe(false);
+  });
 });
 
 describe("can", () => {

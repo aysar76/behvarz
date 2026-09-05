@@ -17,6 +17,7 @@ export const mainNav: NavItem[] = [
   { label: "کشف دانش", href: "/discover" },
   { label: "حلقه‌های همیار", href: "/circles" },
   { label: "آکادمی", href: "/academy" },
+  { label: "مزایا", href: "/benefits" },
   { label: "خوراک حرفه‌ای", href: "/feed" },
   { label: "پروفایل", href: "/me" },
 ];
