@@ -125,6 +125,30 @@ export function UserMenu() {
             </Link>
             <Link
               role="menuitem"
+              href="/campaigns"
+              onClick={() => setOpen(false)}
+              className="hover:bg-accent focus-visible:outline-ring block px-4 py-2.5 text-sm focus-visible:outline-2"
+            >
+              کمپین‌ها و بازی‌ها
+            </Link>
+            <Link
+              role="menuitem"
+              href="/tools"
+              onClick={() => setOpen(false)}
+              className="hover:bg-accent focus-visible:outline-ring block px-4 py-2.5 text-sm focus-visible:outline-2"
+            >
+              ابزارهای اجرایی
+            </Link>
+            <Link
+              role="menuitem"
+              href="/insights"
+              onClick={() => setOpen(false)}
+              className="hover:bg-accent focus-visible:outline-ring block px-4 py-2.5 text-sm focus-visible:outline-2"
+            >
+              نقشه موانع
+            </Link>
+            <Link
+              role="menuitem"
               href="/appeals"
               onClick={() => setOpen(false)}
               className="hover:bg-accent focus-visible:outline-ring block px-4 py-2.5 text-sm focus-visible:outline-2"

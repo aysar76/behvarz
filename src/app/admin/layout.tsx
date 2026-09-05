@@ -8,6 +8,9 @@ import { cn } from "@/lib/utils";
 const adminLinks = [
   { href: "/admin/memberships", label: "تأیید عضویت‌ها" },
   { href: "/admin/moderation", label: "مدیریت محتوا" },
+  { href: "/admin/command-center", label: "مرکز فرماندهی" },
+  { href: "/admin/campaigns", label: "کمپین‌ها" },
+  { href: "/admin/tools", label: "ابزارهای اجرایی" },
   { href: "/admin/users", label: "کاربران" },
   { href: "/admin/appeals", label: "اعتراض‌ها" },
   { href: "/admin/sensitive-terms", label: "واژه‌های حساس" },

@@ -1,5 +1,16 @@
 # تغییرات (Changelog)
 
+## فاز ۱۴ — افق بلند: اکوسیستم کامل (چشم‌انداز PDF)
+
+- **مرکز فرماندهی** (`/admin/command-center` + `GET /api/admin/command-center`): تصویر زنده و تجمیعی وضعیت شبکه (اعضا، مسائل، تجربه‌ها، اجرای مجدد، حلقه‌ها، همکاری‌ها، کمپین‌ها)، الگوها (نوع مانع، وضعیت مسائل، استان‌ها، برچسب‌های پرتکرار)، هشدارها (مسائل بی‌پاسخ ۴۸ساعته، گزارش‌های در انتظار، صف بررسی ناظر، اعتراض‌ها، تأیید عضویت، کاربران محدود)، روندهای هفتگی (جاری vs هفته قبل) و **پیشنهاد حمایت/Coaching** برای تیم جامعه — تجمیعی و هم‌افزا، نه نظارت تنبیهی.
+- **بازی‌های شبکه‌ای و کمپین‌ها** (`/campaigns` + `/admin/campaigns`): نسخه‌های سبک و اختیاری از **شش خانواده بازی PDF** (یادگیری، همکاری، شبکه، نوآوری، رشد، مأموریت)؛ مشارکت اختیاری با کلید یکتا (`CampaignParticipation`) و انصراف؛ بدون لیدربورد و پاداش اعتیادآور.
+- **ابزارهای اجرایی (کارخانه محتوا)** (`/tools` + `/tools/[slug]` + `/admin/tools`): راهنما، چک‌لیست، بسته مداخله و اقلام محتوایی با مالک/نسخه/تاریخ بازبینی؛ اسلاگ قابل اشتراک (`abzar-XXXXXXXX`)؛ فقط انتشار برای اعضا؛ بنر «مدرک رسمی نیست».
+- **نقشه موانع تجمیعی ناشناس** (`/insights` + `/api/insights/barrier-map`): شمارش تجمیعی «نوع مانع» به تفکیک استان از مسائل منتشرشده — **فقط از کاربران دارای رضایت** (`User.allowDataContribution`)؛ سوییچ رضایت قابل برگشت (`PATCH /api/insights/data-contribution`) + حکمرانی داده شفاف.
+- مجوزهای RBAC جدید: `campaigns:read/join/manage`، `tools:read/manage`، `insights:read`، `command-center:view` (سه مورد آخر فقط مدیریت).
+- Migration فاز ۱۴ (`Campaign`، `CampaignParticipation`، `Tool` + ۴ enum + `User.allowDataContribution`).
+- ورودی ناوبری: «ابزارها» و «کمپین‌ها» در منوی اصلی؛ «کمپین‌ها و بازی‌ها»، «ابزارهای اجرایی» و «نقشه موانع» در منوی کاربر؛ «مرکز فرماندهی»، «کمپین‌ها» و «ابزارهای اجرایی» در منوی مدیریت.
+- تست‌ها: سریالایزر/اعتبارسنجی کمپین و ابزار، RBAC، **Integration** با دیتابیس واقعی (`phase14-ecosystem.test.ts`) — آمار ۳۱۹ تست (+۲۳).
+
 ## فاز ۱۳ — سخت‌سازی، مقیاس و استقرار پایدار
 
 - **Security Headers** (`next.config.ts`): CSP، `X-Frame-Options: DENY`، `X-Content-Type-Options: nosniff`، `Referrer-Policy: strict-origin-when-cross-origin`، `Permissions-Policy` و `Strict-Transport-Security` (فقط Production) + `output: "standalone"`.

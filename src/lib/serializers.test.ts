@@ -15,6 +15,7 @@ function buildUser(overrides: Partial<UserWithProfile> = {}): UserWithProfile {
     visibility: "members",
     onboardingCompleted: true,
     willingToHelp: false,
+    allowDataContribution: false,
     accountStatus: "active",
     accountStatusReason: null,
     accountStatusAt: null,

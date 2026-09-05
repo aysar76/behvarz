@@ -126,6 +126,46 @@ describe("hasPermission", () => {
     expect(hasPermission("guest", "benefits:use")).toBe(false);
     expect(hasPermission("guest", "benefits:propose")).toBe(false);
   });
+
+  it("lets members read and join campaigns", () => {
+    expect(hasPermission("member", "campaigns:read")).toBe(true);
+    expect(hasPermission("member", "campaigns:join")).toBe(true);
+    expect(hasPermission("member", "campaigns:manage")).toBe(false);
+  });
+
+  it("lets admins manage campaigns", () => {
+    expect(hasPermission("admin", "campaigns:manage")).toBe(true);
+    expect(hasPermission("super_admin", "campaigns:manage")).toBe(true);
+    expect(hasPermission("content_moderator", "campaigns:manage")).toBe(false);
+  });
+
+  it("lets members read tools but not manage them", () => {
+    expect(hasPermission("member", "tools:read")).toBe(true);
+    expect(hasPermission("member", "tools:manage")).toBe(false);
+  });
+
+  it("lets admins manage tools", () => {
+    expect(hasPermission("admin", "tools:manage")).toBe(true);
+    expect(hasPermission("super_admin", "tools:manage")).toBe(true);
+  });
+
+  it("lets members read insights (barrier map)", () => {
+    expect(hasPermission("member", "insights:read")).toBe(true);
+  });
+
+  it("restricts command center to admin roles", () => {
+    expect(hasPermission("admin", "command-center:view")).toBe(true);
+    expect(hasPermission("super_admin", "command-center:view")).toBe(true);
+    expect(hasPermission("member", "command-center:view")).toBe(false);
+    expect(hasPermission("content_moderator", "command-center:view")).toBe(false);
+  });
+
+  it("denies guests phase-14 access", () => {
+    expect(hasPermission("guest", "campaigns:read")).toBe(false);
+    expect(hasPermission("guest", "campaigns:join")).toBe(false);
+    expect(hasPermission("guest", "tools:read")).toBe(false);
+    expect(hasPermission("guest", "insights:read")).toBe(false);
+  });
 });
 
 describe("can", () => {

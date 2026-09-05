@@ -65,7 +65,14 @@ export type Permission =
   | "benefits:read"
   | "benefits:use"
   | "benefits:propose"
-  | "benefits:manage";
+  | "benefits:manage"
+  | "campaigns:read"
+  | "campaigns:join"
+  | "campaigns:manage"
+  | "tools:read"
+  | "tools:manage"
+  | "insights:read"
+  | "command-center:view";
 
 const CONTENT_PERMISSIONS: readonly Permission[] = [
   "interactions:follow",
@@ -94,6 +101,10 @@ const CONTENT_PERMISSIONS: readonly Permission[] = [
   "benefits:read",
   "benefits:use",
   "benefits:propose",
+  "campaigns:read",
+  "campaigns:join",
+  "tools:read",
+  "insights:read",
 ];
 
 const MODERATION_PERMISSIONS: readonly Permission[] = [
@@ -111,6 +122,9 @@ const ADMIN_PERMISSIONS: readonly Permission[] = [
   "tags:manage",
   "academy:manage",
   "benefits:manage",
+  "campaigns:manage",
+  "tools:manage",
+  "command-center:view",
 ];
 
 const PERMISSIONS_BY_ROLE: Record<Role, readonly Permission[]> = {

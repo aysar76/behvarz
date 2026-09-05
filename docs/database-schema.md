@@ -1,4 +1,4 @@
-# اسکیمای دیتابیس (Database Schema) — فاز ۱۲
+# اسکیمای دیتابیس (Database Schema) — فاز ۱۴
 
 **وضعیت:** به‌روزرسانی با وضعیت واقعی کد — تاریخ: مهر ۱۴۰۵
 
@@ -57,6 +57,10 @@
 | BenefitReportStatus         | pending، resolved، rejected                                                             |
 | BudgetProposalStatus        | draft، under_review، approved، rejected، voting، implemented، closed                    |
 | BudgetProposalCategory      | equipment، training، community، infrastructure، other                                   |
+| CampaignFamily              | learning، cooperation، network، innovation، growth، mission (فاز ۱۴)                    |
+| CampaignStatus              | draft، active، completed، archived (فاز ۱۴)                                             |
+| ToolKind                    | guide، checklist، intervention، content_item (فاز ۱۴)                                  |
+| ToolStatus                  | draft، published، archived (فاز ۱۴)                                                     |
 
 ## مدل‌ها
 
@@ -76,6 +80,7 @@
 | visibility          | Visibility (members)    | تنظیم حریم خصوصی پروفایل                            |
 | onboardingCompleted | Boolean (false)         | تکمیل Onboarding                                    |
 | willingToHelp       | Boolean (false)         | تمایل به همیاری (فاز ۶؛ فقط این کاربران در پیشنهاد همیار) |
+| allowDataContribution | Boolean (false)       | رضایت صریح برای مشارکت داده‌های ناشناس در «نقشه موانع» (فاز ۱۴) |
 | accountStatus       | AccountStatus (active)  | وضعیت حساب (فاز ۷: active/warned/restricted/suspended) |
 | accountStatusReason | String?                 | دلیل آخرین تغییر وضعیت حساب (فاز ۷)                 |
 | accountStatusAt     | DateTime?               | زمان آخرین تغییر وضعیت حساب (فاز ۷)                 |
@@ -822,6 +827,61 @@
 | createdAt   | DateTime                   | زمان              |
 
 > Index: `[proposalId]`.
+
+### Campaign (فاز ۱۴)
+
+کمپین/بازی شبکه‌ای — نسخه سبک و اختیاری از شش خانواده بازی PDF:
+
+| فیلد        | نوع                       | توضیح                                        |
+| ----------- | ------------------------- | -------------------------------------------- |
+| id          | String PK (cuid)          | شناسه                                        |
+| family      | CampaignFamily            | خانواده بازی (learning/cooperation/network/innovation/growth/mission) |
+| title       | String                    | عنوان                                        |
+| description | String                    | شرح                                          |
+| status      | CampaignStatus            | draft/active/completed/archived              |
+| startsAt    | DateTime?                 | زمان شروع                                    |
+| endsAt      | DateTime?                 | زمان پایان                                   |
+| isOptional  | Boolean (true)            | اختیاری (مشارکت بدون اجبار)                 |
+| createdById | FK → User (Cascade)       | ایجادکننده                                   |
+| publishedAt | DateTime?                 | زمان انتشار (با وضعیت active)                |
+| createdAt/updatedAt | DateTime          | زمان‌ها                                       |
+
+> Index: `[status]`، `[family]`.
+
+### CampaignParticipation (فاز ۱۴)
+
+مشارکت اختیاری کاربر در کمپین (هر کاربر یک‌بار برای هر کمپین):
+
+| فیلد       | نوع                       | توضیح            |
+| ---------- | ------------------------- | ---------------- |
+| id         | String PK (cuid)          | شناسه            |
+| campaignId | FK → Campaign (Cascade)   | کمپین            |
+| userId     | FK → User (Cascade)       | کاربر            |
+| createdAt  | DateTime                  | زمان             |
+
+> UNIQUE: `[campaignId, userId]`؛ Index: `[campaignId]`، `[userId]`.
+
+### Tool (فاز ۱۴)
+
+ابزار اجرایی (کارخانه محتوا) — راهنما، چک‌لیست، بسته مداخله، اقلام محتوایی:
+
+| فیلد        | نوع                       | توضیح                                        |
+| ----------- | ------------------------- | -------------------------------------------- |
+| id          | String PK (cuid)          | شناسه                                        |
+| slug        | String UNIQUE             | اسلاگ قابل اشتراک (`abzar-XXXXXXXX`)          |
+| kind        | ToolKind                  | guide/checklist/intervention/content_item    |
+| title       | String                    | عنوان                                        |
+| summary     | String                    | خلاصه                                        |
+| body        | String                    | محتوا                                        |
+| status      | ToolStatus                | draft/published/archived                     |
+| version     | Int (1)                   | نسخه محتوا (در هر ویرایش افزایش می‌یابد)     |
+| reviewedAt  | DateTime?                 | آخرین تاریخ بازبینی                          |
+| tags        | Json?                     | برچسب‌ها (متن ساده)                          |
+| createdById | FK → User (Cascade)       | مالک/نویسنده                                 |
+| publishedAt | DateTime?                 | زمان انتشار                                   |
+| createdAt/updatedAt | DateTime          | زمان‌ها                                       |
+
+> Index: `[status]`، `[kind]`. فقط ابزار `published` با `publishedAt` برای اعضا قابل مشاهده است.
 
 ## قواعد
 

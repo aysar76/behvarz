@@ -1,6 +1,6 @@
 # قراردادهای API (API Contracts)
 
-**وضعیت:** فاز ۱۳ — سخت‌سازی، مقیاس و استقرار پایدار
+**وضعیت:** فاز ۱۴ — افق بلند: اکوسیستم کامل
 **تاریخ:** مهر ۱۴۰۵
 
 این سند قراردادهای عمومی API را بر اساس وضعیت واقعی کد مستند می‌کند. جزئیات کامل هر
@@ -49,7 +49,10 @@
 | حکمرانی | `/api/moderation/...` |
 | آکادمی | `/api/academy` (+`/[slug]`, `enroll`, `lessons/[id]/apply|complete|quiz`) |
 | مزایا/بودجه | `/api/benefits` (+`/[id]`, `usage`, `report`), `/api/budget-proposals` (+`/[id]/vote`) |
-| مدیریت | `/api/admin/**` (پنل) |
+| کمپین‌ها | `/api/campaigns` (+`/[id]`, `/[id]/participation`) |
+| ابزارها | `/api/tools` (+`/[slug]`) |
+| بینش/نقشه موانع | `/api/insights/barrier-map`, `/api/insights/data-contribution` |
+| مدیریت | `/api/admin/**` (پنل)؛ شامل `/api/admin/command-center`، `/api/admin/campaigns(+[id])`، `/api/admin/tools(+[id])` |
 | سلامت | `/api/health` |
 
 ## ۴. قواعد
@@ -64,7 +67,8 @@
 ## ۵. فهرست مجوزها (Permission)
 
 مجوزها در `src/lib/rbac.ts` تعریف شده‌اند و شامل: `problems:*`, `experiences:*`, `interactions:*`,
-`circles:*`, `peer:*`, `moderation:*`, `academy:*`, `benefits:*`, `membership:review`,
+`circles:*`, `peer:*`, `moderation:*`, `academy:*`, `benefits:*`, `campaigns:*`, `tools:*`,
+`insights:read`, `command-center:view`, `membership:review`,
 `content:moderate`, `reports:review`, `moderation:users`, `tags:manage` و... .
 
 > جزئیات کامل و نقش‌ها: `docs/roles-and-permissions.md` (یا بخش RBAC در `src/lib/rbac.ts`).

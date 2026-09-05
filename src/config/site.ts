@@ -18,6 +18,8 @@ export const mainNav: NavItem[] = [
   { label: "حلقه‌های همیار", href: "/circles" },
   { label: "آکادمی", href: "/academy" },
   { label: "مزایا", href: "/benefits" },
+  { label: "ابزارها", href: "/tools" },
+  { label: "کمپین‌ها", href: "/campaigns" },
   { label: "خوراک حرفه‌ای", href: "/feed" },
   { label: "پروفایل", href: "/me" },
 ];
