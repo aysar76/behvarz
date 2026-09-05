@@ -57,6 +57,9 @@
     "vitest": "^5.0.0"
   },
   "packageManager": "pnpm@11.16.0",
+  "engines": {
+    "node": ">=20.9.0"
+  },
   "prisma": {
     "seed": "node scripts/seed-demo.mjs"
   }

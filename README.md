@@ -49,6 +49,31 @@ pnpm check:all      # lint + typecheck + test + build
 pnpm db:studio      # مشاهده دیتابیس
 ```
 
+## متغیرهای محیطی
+
+پروژه با `.env.example` شروع می‌شود. متغیرهای موردنیاز (بدون مقدار محرمانه):
+
+| متغیر       | توضیح                                            | پیش‌فرض       |
+| ----------- | ------------------------------------------------ | ------------- |
+| `DATABASE_URL` | آدرس دیتابیس SQLite (توسعه) — برای production با دیتابیس ابری جایگزین شود | `file:./dev.db` |
+
+سایر متغیرها (`OTP_PROVIDER`، `APP_ORIGIN`، `LOG_LEVEL`، `TRUST_PROXY`) مقدار پیش‌فرض دارند و اختیاری هستند.
+
+> **محرمانه‌ها**: هرگز `.env`، `.env.local`، `.env.production` یا فایل‌های رمز/کلید را در Git Commit نکنید. فقط `.env.example` (با مقدارهای خالی یا نمونه) در مخزن می‌ماند.
+
+## Deploy در Vercel
+
+1. پروژه را به GitHub Push کنید (Root Directory همان ریشه مخزن است؛ `package.json` و `pnpm-lock.yaml` در ریشه قرار دارند).
+2. در Vercel پروژه‌ای بسازید و از GitHub import کنید. تنظیمات پیش‌فرض:
+   - Framework Preset: **Next.js**
+   - Build Command: `pnpm build`
+   - Install Command: `pnpm install`
+   - Root Directory: `.`
+3. در Project → Settings → Environment Variables، `DATABASE_URL` را تنظیم کنید.
+4. Deploy کنید.
+
+> **نکته مهم درباره دیتابیس**: پروژه در حالت توسعه از **SQLite** (`@prisma/adapter-better-sqlite3`) استفاده می‌کند که فایل‌محور است و روی توابع سرورلس Vercel پایدار نیست (فایل‌سیستم موقتی و فقط‌خواندنی است). برای production در Vercel باید دیتابیس ابری (مانند PostgreSQL با Prisma) جایگزین شود. برای پیش‌نمایش/نمونه می‌توان از Postgres رایگان Vercel استفاده کرد. ساختار Prisma (`prisma/schema.prisma`) حفظ شده و با تغییر `provider` در datasource و مقدار `DATABASE_URL` قابل انتقال است.
+
 ## ساختار پروژه
 
 ```
